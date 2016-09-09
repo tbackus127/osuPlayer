@@ -1,7 +1,7 @@
 
 .metadata
-bin/**
-tmp/**
+bin/**/
+tmp/**/
 *.tmp
 *.bak
 *.swp
