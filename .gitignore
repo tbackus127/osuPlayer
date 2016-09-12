@@ -1,7 +1,8 @@
 
 .metadata
-bin/**/
-tmp/**/
+bin/
+Songs/
+tmp/
 *.tmp
 *.bak
 *.swp
