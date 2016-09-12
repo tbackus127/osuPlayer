@@ -23,16 +23,14 @@ public class OsuPlayer {
    * 
    * @param map
    *          the beatmap directory to get metadata from
-   * @return a String[] with the map's background file, audio file, title,
-   *         artist, and source, respectively.
+   * @return a String[] with the map's directory, background file, audio file,
+   *         title, artist, and source, respectively.
    */
   private static String[] parseBeatmap(String dir) {
-    String[] result = new String[5];
+    String[] result = new String[6];
     File map = new File(dir);
-    System.err.println(map.getAbsolutePath());
+    result[0] = dir;
 
-    System.err.println(Arrays.toString(map.listFiles()));
-    
     // Choose the first .osu file we come across to parse
     File osuFile = map.listFiles(new FilenameFilter() {
 
@@ -55,27 +53,28 @@ public class OsuPlayer {
 
         // Audio file
         if (line.startsWith("AudioFilename:")) {
-          result[1] = line.split(":", 2)[1];
-          foundCount++;
-          
-        // Song Title 
-        } else if (line.startsWith("Title:")) {
           result[2] = line.split(":", 2)[1];
           foundCount++;
-          
-        // Song Artist
-        } else if (line.startsWith("Artist:")) {
+
+          // Song Title
+        } else if (line.startsWith("Title:")) {
           result[3] = line.split(":", 2)[1];
           foundCount++;
-          
-        // Song Source
-        } else if(line.startsWith("Source:")) {
+
+          // Song Artist
+        } else if (line.startsWith("Artist:")) {
           result[4] = line.split(":", 2)[1];
-          
-        // Background Image
+          foundCount++;
+
+          // Song Source
+        } else if (line.startsWith("Source:")) {
+          result[5] = line.split(":", 2)[1];
+
+          // Background Image
         } else if (line.startsWith("//Background and Video")) {
           line = fscan.nextLine();
-          result[0] = line.split(",")[2];
+          result[1] = line.split(",")[2];
+          result[1] = result[1].substring(1, result[1].length() - 1);
           foundCount++;
         }
       }
@@ -117,12 +116,12 @@ public class OsuPlayer {
 
     // Choose random beatmap directory
     Random rand = new Random();
-    String currentMapDir = "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
-    System.err.println("Chosen: " + currentMapDir);
+    String currentMapDir = "Songs/"
+        + beatmapFolders[rand.nextInt(beatmapFolders.length)];
 
     // Parse any .osu file for the background and audio file.
     String[] mapMetadata = parseBeatmap(currentMapDir);
-    System.err.println(Arrays.toString(mapMetadata));
+    SongPanel songPanel = new SongPanel(mapMetadata);
 
     // -------------------------------------------------------------
     // Rendering
@@ -142,6 +141,10 @@ public class OsuPlayer {
     frame.setUndecorated(true);
     frame.setLayout(null);
 
+    frame.add(songPanel);
+    frame.revalidate();
+    frame.repaint();
+    
     frame.setVisible(true);
   }
 
