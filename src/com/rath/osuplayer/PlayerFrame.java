@@ -21,6 +21,8 @@ public class PlayerFrame extends JFrame {
    */
   private static final long serialVersionUID = 1L;
 
+  private final SongPanel songPanel;
+  
   /**
    * Width of this frame
    */
@@ -38,8 +40,17 @@ public class PlayerFrame extends JFrame {
     super();
     this.frameWidth = w;
     this.frameHeight = h;
+    this.songPanel = new SongPanel(this, this.frameWidth, this.frameHeight);
+    
+    add(this.songPanel);
+    revalidate();
+    repaint();
   }
 
+  public void closeEverything() {
+    
+  }
+  
   /**
    * Returns the preferred size of this frame
    * 
