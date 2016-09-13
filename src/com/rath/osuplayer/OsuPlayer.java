@@ -7,7 +7,6 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -125,26 +124,13 @@ public class OsuPlayer {
 
     // -------------------------------------------------------------
     // Rendering
-    // -------------------------------------------------------------
-
-    // Get screen dimensions
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-
-    JFrame frame = new JFrame();
-
-    // Create window and display it
-    frame.setSize(dim);
-    frame.setPreferredSize(dim);
-
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-    frame.setUndecorated(true);
-    frame.setLayout(null);
+    // ----------------------------------------------
+    PlayerFrame frame = new PlayerFrame();
 
     frame.add(songPanel);
     frame.revalidate();
     frame.repaint();
-    
+
     frame.setVisible(true);
   }
 
