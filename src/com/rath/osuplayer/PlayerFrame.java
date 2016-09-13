@@ -4,7 +4,6 @@ package com.rath.osuplayer;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.LayoutManager;
-import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 

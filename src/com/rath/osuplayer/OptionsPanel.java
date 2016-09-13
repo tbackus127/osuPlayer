@@ -4,8 +4,6 @@ package com.rath.osuplayer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -71,7 +69,7 @@ public class OptionsPanel extends JPanel {
     setOpaque(false);
     setBackground(new Color(0, 0, 0, 0));
     setLayout(new FlowLayout());
-    
+
     // Load images
     try {
       this.playPauseImg = ImageIO.read(new File("res/img/pause.png"));
@@ -87,9 +85,10 @@ public class OptionsPanel extends JPanel {
     this.playPauseButton.setBorder(BorderFactory.createEmptyBorder());
     this.playPauseButton.setContentAreaFilled(false);
     this.playPauseButton.addActionListener(new ActionListener() {
+
       @Override
       public void actionPerformed(ActionEvent evt) {
-        
+
       }
     });
 
@@ -97,22 +96,24 @@ public class OptionsPanel extends JPanel {
     this.newSongButton.setBorder(BorderFactory.createEmptyBorder());
     this.newSongButton.setContentAreaFilled(false);
     this.newSongButton.addActionListener(new ActionListener() {
+
       @Override
       public void actionPerformed(ActionEvent evt) {
-        
+
       }
     });
-    
+
     this.closeButton = new JButton(new ImageIcon(this.closeImg));
     this.closeButton.setBorder(BorderFactory.createEmptyBorder());
     this.closeButton.setContentAreaFilled(false);
     this.closeButton.addActionListener(new ActionListener() {
+
       @Override
       public void actionPerformed(ActionEvent evt) {
         closeEverything();
       }
     });
-    
+
     // Add control buttons
     add(this.playPauseButton);
     add(this.newSongButton);
@@ -122,16 +123,6 @@ public class OptionsPanel extends JPanel {
 
   public void closeEverything() {
     this.parent.closeEverything();
-  }
-  
-  /**
-   * Rendering method
-   * 
-   * @param g
-   *          Graphics object
-   */
-  public void paintComponent(Graphics g) {
-    Graphics2D g2 = (Graphics2D) g;
   }
 
   /**
