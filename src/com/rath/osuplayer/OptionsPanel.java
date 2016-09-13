@@ -109,7 +109,7 @@ public class OptionsPanel extends JPanel {
     this.closeButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent evt) {
-        
+        closeEverything();
       }
     });
     
@@ -120,6 +120,10 @@ public class OptionsPanel extends JPanel {
 
   }
 
+  public void closeEverything() {
+    this.parent.closeEverything();
+  }
+  
   /**
    * Rendering method
    * 

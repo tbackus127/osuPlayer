@@ -22,9 +22,16 @@ public class OsuPlayer {
     final int fsWidth = fsDim.width;
     final int fsHeight = fsDim.height;
 
-    PlayerFrame frame = new PlayerFrame(fsWidth, fsHeight);
-    frame.setUndecorated(true);
-    frame.setVisible(true);
+    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+
+      @Override
+      public void run() {
+        PlayerFrame frame = new PlayerFrame(fsWidth, fsHeight);
+        frame.setUndecorated(true);
+        frame.setVisible(true);
+      }
+    });
+
   }
 
 }

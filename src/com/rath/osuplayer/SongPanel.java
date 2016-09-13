@@ -29,6 +29,7 @@ public class SongPanel extends JPanel {
    * The song background from the beatmap folder
    */
   private Image songBG;
+  private OptionsPanel optPanel;
 
   private int width;
   private int height;
@@ -60,8 +61,8 @@ public class SongPanel extends JPanel {
     catch (IOException e) {
       e.printStackTrace();
     }
-    OptionsPanel optPanel = new OptionsPanel(this);
-    par.add(optPanel);
+    this.optPanel = new OptionsPanel(this);
+    par.add(this.optPanel);
     par.revalidate();
     par.repaint();
   }
