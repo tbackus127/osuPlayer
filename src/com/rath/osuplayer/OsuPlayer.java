@@ -2,15 +2,12 @@
 package com.rath.osuplayer;
 
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.Random;
 import java.util.Scanner;
-
-import javax.swing.JFrame;
 
 /**
  * @author Tim Backus tbackus127@gmail.com
@@ -94,6 +91,11 @@ public class OsuPlayer {
    */
   public static void main(String[] args) {
 
+    Dimension fsDim = Toolkit.getDefaultToolkit().getScreenSize();
+
+    final int fsWidth = fsDim.width;
+    final int fsHeight = fsDim.height;
+
     // -------------------------------------------------------------
     // Beatmap processing
     // -------------------------------------------------------------
@@ -120,12 +122,15 @@ public class OsuPlayer {
 
     // Parse any .osu file for the background and audio file.
     String[] mapMetadata = parseBeatmap(currentMapDir);
-    SongPanel songPanel = new SongPanel(mapMetadata);
+    SongPanel songPanel = new SongPanel(mapMetadata, fsWidth, fsHeight);
 
     // -------------------------------------------------------------
     // Rendering
     // ----------------------------------------------
-    PlayerFrame frame = new PlayerFrame();
+
+    PlayerFrame frame = new PlayerFrame(fsWidth, fsHeight);
+
+    frame.setUndecorated(true);
 
     frame.add(songPanel);
     frame.revalidate();

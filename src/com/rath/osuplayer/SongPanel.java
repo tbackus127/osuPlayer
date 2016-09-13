@@ -18,15 +18,21 @@ import javax.swing.JPanel;
 public class SongPanel extends JPanel {
 
   /**
+   * Serial Version ID (default)
+   */
+  private static final long serialVersionUID = 1L;
+
+  /**
    * The song background from the beatmap folder
    */
   private Image songBG;
 
-  public SongPanel(String[] meta) {
+  public SongPanel(String[] meta, int w, int h) {
     super();
     try {
       System.err.println(meta[0] + "/" + meta[1]);
-      this.songBG = ImageIO.read(new File(meta[0] + "/" + meta[1]));
+      this.songBG = ImageIO.read(new File(meta[0] + "/" + meta[1]))
+          .getScaledInstance(w, h, Image.SCALE_SMOOTH);
     }
     catch (IOException e) {
       e.printStackTrace();

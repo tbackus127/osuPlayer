@@ -4,7 +4,6 @@ package com.rath.osuplayer;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.LayoutManager;
-import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 
@@ -23,10 +22,22 @@ public class PlayerFrame extends JFrame {
   private static final long serialVersionUID = 1L;
 
   /**
+   * Width of this frame
+   */
+  private final int frameWidth;
+
+  /**
+   * Height of this frame
+   */
+  private final int frameHeight;
+
+  /**
    * Default constructor
    */
-  public PlayerFrame() {
+  public PlayerFrame(int w, int h) {
     super();
+    this.frameWidth = w;
+    this.frameHeight = h;
   }
 
   /**
@@ -36,7 +47,7 @@ public class PlayerFrame extends JFrame {
    */
   @Override
   public Dimension getPreferredSize() {
-    return Toolkit.getDefaultToolkit().getScreenSize();
+    return new Dimension(this.frameWidth, this.frameHeight);
   }
 
   /**
@@ -67,16 +78,6 @@ public class PlayerFrame extends JFrame {
   @Override
   public int getExtendedState() {
     return Frame.MAXIMIZED_BOTH;
-  }
-
-  /**
-   * Returns whether or not the frame will have a top bar and border
-   * 
-   * @return true -- undecorated
-   */
-  @Override
-  public boolean isUndecorated() {
-    return true;
   }
 
   /**
