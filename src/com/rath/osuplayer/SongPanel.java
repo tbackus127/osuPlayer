@@ -96,7 +96,8 @@ public class SongPanel extends JPanel {
 
     // Set the background of this panel
     try {
-      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(w, h, Image.SCALE_SMOOTH);
+      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width, this.height,
+          Image.SCALE_SMOOTH);
       File fontFile = new File("res/fonts/YANONEKAFFEESATZ-REGULAR.TTF");
       this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
       this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
@@ -239,7 +240,7 @@ public class SongPanel extends JPanel {
     g2.drawString(artistString, fx + 2, fy + 2);
     g2.setColor(Color.WHITE);
     g2.drawString(artistString, fx, fy);
-    
+
     // Calculate and draw source name
     String sourceString = "Source: " + this.metadata[5];
     fy += (this.height / 20);
