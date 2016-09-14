@@ -1,10 +1,15 @@
 
 package com.rath.osuplayer;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -12,8 +17,6 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-
-import com.sun.org.apache.xpath.internal.operations.And;
 
 /**
  * The main graphics panel. Song backgrounds and info will be rendered here.
@@ -54,6 +57,16 @@ public class SongPanel extends JPanel {
   private PlayerFrame parent;
 
   /**
+   * Font for drawing the title font
+   */
+  private Font titleFont;
+
+  /**
+   * Font for drawing the artist and source label font
+   */
+  private Font labelFont;
+
+  /**
    * Song metadata with the following indeces: 0: Beatmap directory 1:
    * Background image filename 2: Audio filename 3: Song title 4: Song artist 5:
    * Song source
@@ -84,8 +97,15 @@ public class SongPanel extends JPanel {
     // Set the background of this panel
     try {
       this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(w, h, Image.SCALE_SMOOTH);
+      File fontFile = new File("res/fonts/YANONEKAFFEESATZ-REGULAR.TTF");
+      this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
+      this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
     } catch (IOException e) {
       e.printStackTrace();
+    } catch (FontFormatException ffe) {
+      ffe.printStackTrace();
     }
 
     // Create and add the options panel
@@ -149,7 +169,7 @@ public class SongPanel extends JPanel {
   public void togglePause() {
     System.err.println("Pause toggled.");
   }
-  
+
   /**
    * Calls the main JFrame's closeEverything() method
    */
@@ -190,6 +210,42 @@ public class SongPanel extends JPanel {
    */
   @Override
   public void paintComponent(Graphics g) {
-    g.drawImage(this.songBG, 0, 0, null);
+    Graphics2D g2 = (Graphics2D) g;
+    g2.drawImage(this.songBG, 0, 0, null);
+
+    // Song title font calculations
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2.setFont(this.titleFont);
+    String titleString = this.metadata[3];
+    int fx = this.optPanel.getWidth() + (this.width >> 5);
+    int fy = this.height - this.optPanel.getHeight() - (this.height >> 5);
+
+    // Draw shadow
+    g2.setColor(Color.BLACK);
+    g2.drawString(titleString, fx + 2, fy + 2);
+
+    // Draw title
+    g2.setColor(Color.WHITE);
+    g2.drawString(titleString, fx, fy);
+
+    // Artist font calculations
+    g2.setFont(this.labelFont);
+    String artistString = "Artist: " + this.metadata[4];
+    fx += (this.width >> 5);
+    fy += (this.height / 20);
+
+    // Draw Shadow and artist name
+    g2.setColor(Color.BLACK);
+    g2.drawString(artistString, fx + 2, fy + 2);
+    g2.setColor(Color.WHITE);
+    g2.drawString(artistString, fx, fy);
+    
+    // Calculate and draw source name
+    String sourceString = "Source: " + this.metadata[5];
+    fy += (this.height / 20);
+    g2.setColor(Color.BLACK);
+    g2.drawString(sourceString, fx + 2, fy + 2);
+    g2.setColor(Color.WHITE);
+    g2.drawString(sourceString, fx, fy);
   }
 }
