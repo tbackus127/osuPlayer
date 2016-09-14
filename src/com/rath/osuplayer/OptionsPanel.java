@@ -61,8 +61,8 @@ public class OptionsPanel extends JPanel {
     final Dimension pdim = this.parent.getPreferredSize();
     final int pw = pdim.width;
     final int ph = pdim.height;
-    this.width = (pw >> 2) - 64;
-    this.height = (ph >> 3) - 16;
+    this.width = (pw >> 2) - (pw / 24);
+    this.height = (ph >> 3) - (ph / 60);
 
     // Set size and transparency
     setBounds(new Rectangle(0, ph - this.height, this.width, this.height));
@@ -75,8 +75,7 @@ public class OptionsPanel extends JPanel {
       this.playPauseImg = ImageIO.read(new File("res/img/pause.png"));
       this.newSongImg = ImageIO.read(new File("res/img/refresh.png"));
       this.closeImg = ImageIO.read(new File("res/img/close.png"));
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
 
@@ -88,7 +87,7 @@ public class OptionsPanel extends JPanel {
 
       @Override
       public void actionPerformed(ActionEvent evt) {
-
+        parent.togglePause();
       }
     });
 
@@ -99,7 +98,7 @@ public class OptionsPanel extends JPanel {
 
       @Override
       public void actionPerformed(ActionEvent evt) {
-
+        parent.newSong();
       }
     });
 
