@@ -11,6 +11,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Random;
@@ -40,6 +41,11 @@ public class SongPanel extends JPanel {
    * Reference to the child panel (OptionsPanel)
    */
   private OptionsPanel optPanel;
+  
+  /**
+   * The audio player
+   */
+  private AudioPlayer audioPlayer;
 
   /**
    * Width of this JPanel (fullscreen)
@@ -93,6 +99,12 @@ public class SongPanel extends JPanel {
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
+    try {
+      this.audioPlayer = new AudioPlayer(this.metadata[3]);
+    }
+    catch (FileNotFoundException e1) {
+      e1.printStackTrace();
+    }
 
     // Set the background of this panel
     try {
@@ -108,6 +120,8 @@ public class SongPanel extends JPanel {
     } catch (FontFormatException ffe) {
       ffe.printStackTrace();
     }
+    
+    
 
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);

@@ -17,8 +17,8 @@ public class OsuPlayer {
    */
   public static void main(String[] args) {
 
+    // Get dimensions of the screen
     Dimension fsDim = Toolkit.getDefaultToolkit().getScreenSize();
-
     final int fsWidth = fsDim.width;
     final int fsHeight = fsDim.height;
 
