@@ -100,7 +100,7 @@ public class SongPanel extends JPanel {
     this.parent = par;
     this.metadata = getNewMetadata();
     try {
-      this.audioPlayer = new AudioPlayer(this.metadata[3]);
+      this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" + this.metadata[2]);
     }
     catch (FileNotFoundException e1) {
       e1.printStackTrace();
@@ -126,6 +126,7 @@ public class SongPanel extends JPanel {
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);
     par.add(this.optPanel);
+    this.audioPlayer.play();
   }
 
   /**
@@ -165,8 +166,9 @@ public class SongPanel extends JPanel {
    */
   public void newSong() {
     this.metadata = getNewMetadata();
+    String filePath = metadata[0] + "/";
     try {
-      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width, this.height,
+      this.songBG = ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width, this.height,
           Image.SCALE_SMOOTH);
     } catch (IOException e) {
       e.printStackTrace();
@@ -176,6 +178,7 @@ public class SongPanel extends JPanel {
     repaint();
     remove(optPanel);
     add(optPanel);
+    this.audioPlayer.setFile(new File(filePath + metadata[2]));
   }
 
   /**

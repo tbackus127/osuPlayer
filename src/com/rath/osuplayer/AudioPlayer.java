@@ -47,7 +47,7 @@ public class AudioPlayer {
     this.isPlaying = false;
     this.audioFile = new File(fs);
     if(!this.audioFile.exists()) {
-      System.err.println("File not found!");
+      System.err.println("File " + this.audioFile.getAbsolutePath() + " not found!");
       throw new FileNotFoundException();
     }
     this.uriString = this.audioFile.toURI().toString();
@@ -60,6 +60,7 @@ public class AudioPlayer {
    * Plays the loaded .mp3 file
    */
   public void play() {
+    System.err.println("Playing audio");
     isPlaying = true;
     this.player.play();
   }

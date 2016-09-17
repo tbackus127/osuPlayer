@@ -43,27 +43,27 @@ public class MapParser {
 
         // Audio file
         if (line.startsWith("AudioFilename:")) {
-          result[2] = line.split(":", 2)[1];
+          result[2] = line.split(":", 2)[1].trim();
           foundCount++;
 
           // Song Title
         } else if (line.startsWith("Title:")) {
-          result[3] = line.split(":", 2)[1];
+          result[3] = line.split(":", 2)[1].trim();
           foundCount++;
 
           // Song Artist
         } else if (line.startsWith("Artist:")) {
-          result[4] = line.split(":", 2)[1];
+          result[4] = line.split(":", 2)[1].trim();
           foundCount++;
 
           // Song Source
         } else if (line.startsWith("Source:")) {
-          result[5] = line.split(":", 2)[1];
+          result[5] = line.split(":", 2)[1].trim();
 
           // Background Image
         } else if (line.startsWith("//Background and Video")) {
           line = fscan.nextLine();
-          result[1] = line.split(",")[2];
+          result[1] = line.split(",")[2].trim();
           result[1] = result[1].substring(1, result[1].length() - 1);
           foundCount++;
         }
