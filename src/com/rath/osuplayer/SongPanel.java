@@ -178,7 +178,9 @@ public class SongPanel extends JPanel {
     repaint();
     remove(optPanel);
     add(optPanel);
+    
     this.audioPlayer.setFile(new File(filePath + metadata[2]));
+    this.audioPlayer.play();
   }
 
   /**
@@ -186,6 +188,7 @@ public class SongPanel extends JPanel {
    */
   public void togglePause() {
     System.err.println("Pause toggled.");
+    this.audioPlayer.togglePause();
   }
 
   /**

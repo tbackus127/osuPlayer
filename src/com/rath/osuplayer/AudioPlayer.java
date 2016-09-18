@@ -90,6 +90,19 @@ public class AudioPlayer {
   }
 
   /**
+   * Toggles pause/play
+   */
+  public void togglePause() {
+    if(this.isPlaying) {
+      this.isPlaying = false;
+      this.player.pause();
+    } else {
+      this.isPlaying = true;
+      this.player.play();
+    }
+  }
+  
+  /**
    * Loads audio data from the file specified.
    * 
    * @param f
