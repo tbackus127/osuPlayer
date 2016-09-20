@@ -44,7 +44,7 @@ public class SongPanel extends JPanel {
    * Reference to the child panel (OptionsPanel)
    */
   private OptionsPanel optPanel;
-  
+
   /**
    * The audio player
    */
@@ -81,21 +81,17 @@ public class SongPanel extends JPanel {
    * Song source
    */
   private String[] metadata;
-  
+
   private Minim minim;
   private FFT fft;
 
   /**
    * Default constructor
    * 
-   * @param meta
-   *          metadata from the .osu file
-   * @param parent
-   *          reference to the parent PlayerFrame
-   * @param w
-   *          the fullscreen width
-   * @param h
-   *          the fullscreen height
+   * @param meta metadata from the .osu file
+   * @param parent reference to the parent PlayerFrame
+   * @param w the fullscreen width
+   * @param h the fullscreen height
    */
   public SongPanel(PlayerFrame par, int w, int h) {
     super();
@@ -105,27 +101,30 @@ public class SongPanel extends JPanel {
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
-    // this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" + this.metadata[2]);
+    // this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" +
+    // this.metadata[2]);
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
+    this.audioPlayer =
+        minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
 
     // Set the background of this panel
     try {
-      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width, this.height,
-          Image.SCALE_SMOOTH);
+      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1]))
+          .getScaledInstance(this.width, this.height, Image.SCALE_SMOOTH);
       File fontFile = new File("res/fonts/JAPANSANS80.OTF");
-      this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
-      this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
-      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      this.titleFont =
+          Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
+      this.labelFont =
+          Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
+      GraphicsEnvironment ge =
+          GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
     } catch (IOException e) {
       e.printStackTrace();
     } catch (FontFormatException ffe) {
       ffe.printStackTrace();
     }
-    
-    
 
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);
@@ -158,7 +157,8 @@ public class SongPanel extends JPanel {
 
     // Choose random beatmap directory
     Random rand = new Random();
-    String currentMapDir = "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
+    String currentMapDir =
+        "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
 
     // Parse any .osu file for the background and audio file.
     return MapParser.parseBeatmap(currentMapDir);
@@ -172,8 +172,8 @@ public class SongPanel extends JPanel {
     this.metadata = getNewMetadata();
     String filePath = metadata[0] + "/";
     try {
-      this.songBG = ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width, this.height,
-          Image.SCALE_SMOOTH);
+      this.songBG = ImageIO.read(new File(filePath + metadata[1]))
+          .getScaledInstance(this.width, this.height, Image.SCALE_SMOOTH);
     } catch (IOException e) {
       System.err.println("IOE@" + filePath + metadata[1]);
     } catch (NullPointerException npe) {
@@ -181,15 +181,13 @@ public class SongPanel extends JPanel {
     }
 
     // Swing, why?
-    repaint();
     remove(optPanel);
     add(optPanel);
-    
+    repaint();
+
     this.audioPlayer.close();
-    this.audioPlayer = minim.loadFile(filePath + this.metadata[2], 2048);
+    this.audioPlayer = minim.loadFile(filePath + this.metadata[2], 1024);
     this.audioPlayer.play();
-//    this.audioPlayer.setFile(new File(filePath + metadata[2]));
-//    this.audioPlayer.play();
   }
 
   /**
@@ -197,8 +195,8 @@ public class SongPanel extends JPanel {
    */
   public void togglePause() {
     System.err.println("Pause toggled.");
-    if(this.audioPlayer.isPlaying()) {
-      
+    if (this.audioPlayer.isPlaying()) {
+
       this.audioPlayer.pause();
     } else {
       this.audioPlayer.play();
@@ -240,8 +238,7 @@ public class SongPanel extends JPanel {
    * Renders the panel by painting the background image of the beatmap to the
    * background of this panel, and also paints the song metadata on screen.
    * 
-   * @param g
-   *          the Graphics object
+   * @param g the Graphics object
    */
   @Override
   public void paintComponent(Graphics g) {
@@ -249,7 +246,8 @@ public class SongPanel extends JPanel {
     g2.drawImage(this.songBG, 0, 0, null);
 
     // Song title font calculations
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        RenderingHints.VALUE_ANTIALIAS_ON);
     g2.setFont(this.titleFont);
     String titleString = this.metadata[3];
     int fx = this.optPanel.getWidth() + (this.width >> 5);
@@ -276,7 +274,7 @@ public class SongPanel extends JPanel {
     g2.drawString(artistString, fx, fy);
 
     // Calculate and draw source name
-    if(this.metadata[5].length() > 0) {
+    if (this.metadata[5].length() > 0) {
       String sourceString = "Source: " + this.metadata[5];
       fy += (this.height / 20);
       g2.setColor(Color.BLACK);

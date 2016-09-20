@@ -63,6 +63,8 @@ public class MapParser {
           // Background Image
         } else if (line.startsWith("//Background and Video")) {
           line = fscan.nextLine();
+          if(line.startsWith("Video"))
+            line = fscan.nextLine();
           result[1] = line.split(",")[2].trim();
           result[1] = result[1].substring(1, result[1].length() - 1);
           foundCount++;
