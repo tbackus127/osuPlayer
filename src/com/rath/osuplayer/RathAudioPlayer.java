@@ -12,7 +12,7 @@ import javafx.scene.media.MediaPlayer;
  * 
  * @author Tim Backus tbackus127@gmail.com
  */
-public class AudioPlayer {
+public class RathAudioPlayer {
 
   /**
    * Whether or not there is currently audio playing
@@ -39,7 +39,7 @@ public class AudioPlayer {
    * Default constructor
    * @throws FileNotFoundException 
    */
-  public AudioPlayer(String fs) throws FileNotFoundException {
+  public RathAudioPlayer(String fs) throws FileNotFoundException {
 
     // Needed to get JavaFX and swing to play nicely
     new javafx.embed.swing.JFXPanel();

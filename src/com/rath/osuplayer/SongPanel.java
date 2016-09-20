@@ -11,13 +11,16 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+
+import ddf.minim.AudioPlayer;
+import ddf.minim.Minim;
+import ddf.minim.analysis.FFT;
 
 /**
  * The main graphics panel. Song backgrounds and info will be rendered here.
@@ -78,6 +81,9 @@ public class SongPanel extends JPanel {
    * Song source
    */
   private String[] metadata;
+  
+  private Minim minim;
+  private FFT fft;
 
   /**
    * Default constructor
@@ -99,12 +105,10 @@ public class SongPanel extends JPanel {
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
-    try {
-      this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" + this.metadata[2]);
-    }
-    catch (FileNotFoundException e1) {
-      e1.printStackTrace();
-    }
+    // this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" + this.metadata[2]);
+    System.err.println(this.metadata[0] + "/" + this.metadata[2]);
+    this.minim = new Minim(new MinimHandler());
+    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
 
     // Set the background of this panel
     try {
@@ -171,7 +175,9 @@ public class SongPanel extends JPanel {
       this.songBG = ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width, this.height,
           Image.SCALE_SMOOTH);
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("IOE@" + filePath + metadata[1]);
+    } catch (NullPointerException npe) {
+      System.err.println("NPE@" + filePath + metadata[1]);
     }
 
     // Swing, why?
@@ -179,8 +185,11 @@ public class SongPanel extends JPanel {
     remove(optPanel);
     add(optPanel);
     
-    this.audioPlayer.setFile(new File(filePath + metadata[2]));
+    this.audioPlayer.close();
+    this.audioPlayer = minim.loadFile(filePath + this.metadata[2], 2048);
     this.audioPlayer.play();
+//    this.audioPlayer.setFile(new File(filePath + metadata[2]));
+//    this.audioPlayer.play();
   }
 
   /**
@@ -188,7 +197,12 @@ public class SongPanel extends JPanel {
    */
   public void togglePause() {
     System.err.println("Pause toggled.");
-    this.audioPlayer.togglePause();
+    if(this.audioPlayer.isPlaying()) {
+      
+      this.audioPlayer.pause();
+    } else {
+      this.audioPlayer.play();
+    }
   }
 
   /**
