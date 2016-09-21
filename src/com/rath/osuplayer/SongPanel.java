@@ -19,6 +19,7 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+import ddf.minim.AudioInput;
 import ddf.minim.AudioPlayer;
 import ddf.minim.Minim;
 import ddf.minim.analysis.FFT;
@@ -84,7 +85,9 @@ public class SongPanel extends JPanel {
   private String[] metadata;
 
   private Minim minim;
+  private AudioInput aInput;
   private FFT fft;
+  private int specSize;
 
   /**
    * Default constructor
@@ -104,8 +107,11 @@ public class SongPanel extends JPanel {
     this.metadata = getNewMetadata();
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(
-        this.metadata[0] + "/" + this.metadata[2], 2048);
+    this.audioPlayer = minim
+        .loadFile(this.metadata[0] + "/" + this.metadata[2]);
+    this.aInput = minim.getLineIn(Minim.STEREO);
+    this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
+    this.specSize = this.fft.specSize();
 
     // Set the background of this panel
     try {
@@ -115,7 +121,7 @@ public class SongPanel extends JPanel {
       this.songBG = convertImage(ImageIO.read(
           new File(metadata[0] + "/" + metadata[1])).getScaledInstance(
           this.width, this.height, Image.SCALE_SMOOTH));
-      
+
       // Load and set up fonts
       File fontFile = new File("res/fonts/JAPANSANS80.OTF");
       this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile)
@@ -126,7 +132,7 @@ public class SongPanel extends JPanel {
           .getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
     }
-    
+
     // Exception handling
     catch (IOException e) {
       e.printStackTrace();
@@ -178,11 +184,10 @@ public class SongPanel extends JPanel {
    * Fetches a new song and updates the panel.
    */
   public void newSong() {
-    
+
     // Fade out audio
     this.audioPlayer.shiftGain(0.0F, -50.0F, 400);
-    
-    
+
     this.metadata = getNewMetadata();
     String filePath = metadata[0] + "/";
     try {
@@ -210,8 +215,7 @@ public class SongPanel extends JPanel {
     this.audioPlayer.setGain(-50.0F);
     this.audioPlayer.play();
     this.audioPlayer.shiftGain(-50.0F, 0.0F, 400);
-    
-    
+
   }
 
   /**
@@ -308,6 +312,20 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fx, fy);
     }
 
+    // Draw spectrum center line
+    final int centerY = this.height >> 1;
+    final int specWidth = this.width / this.specSize;
+    g2.drawLine(0, centerY, this.width, centerY);
+    
+    // Get FFT data
+    fft.forward(this.aInput.left);
+    for(int i = 0; i < this.specSize; i++) {
+      float band = this.fft.getBand(i);
+      int bandExp = (int)(band * 1000F * (float)centerY);
+      System.out.println(band + "," + specWidth + "," + bandExp);
+      g2.drawLine(specWidth * i, centerY - bandExp, specWidth * (i+1), centerY);
+    }
+    
   }
 
   /**
