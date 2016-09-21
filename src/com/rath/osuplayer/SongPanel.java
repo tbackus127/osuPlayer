@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class SongPanel extends JPanel {
   /**
    * The song background from the beatmap folder
    */
-  private Image songBG;
+  private BufferedImage songBG;
 
   /**
    * Reference to the child panel (OptionsPanel)
@@ -101,28 +102,36 @@ public class SongPanel extends JPanel {
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
-    // this.audioPlayer = new AudioPlayer(this.metadata[0] + "/" +
-    // this.metadata[2]);
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer =
-        minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
+    this.audioPlayer = minim.loadFile(
+        this.metadata[0] + "/" + this.metadata[2], 2048);
 
     // Set the background of this panel
     try {
-      this.songBG = ImageIO.read(new File(metadata[0] + "/" + metadata[1]))
-          .getScaledInstance(this.width, this.height, Image.SCALE_SMOOTH);
+
+      // Convert the BufferedImage that was converted into a non-castable Image
+      // back into a BufferedImage
+      this.songBG = convertImage(ImageIO.read(
+          new File(metadata[0] + "/" + metadata[1])).getScaledInstance(
+          this.width, this.height, Image.SCALE_SMOOTH));
+      
+      // Load and set up fonts
       File fontFile = new File("res/fonts/JAPANSANS80.OTF");
-      this.titleFont =
-          Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
-      this.labelFont =
-          Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
-      GraphicsEnvironment ge =
-          GraphicsEnvironment.getLocalGraphicsEnvironment();
+      this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile)
+          .deriveFont(64f);
+      this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile)
+          .deriveFont(36f);
+      GraphicsEnvironment ge = GraphicsEnvironment
+          .getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
-    } catch (IOException e) {
+    }
+    
+    // Exception handling
+    catch (IOException e) {
       e.printStackTrace();
-    } catch (FontFormatException ffe) {
+    }
+    catch (FontFormatException ffe) {
       ffe.printStackTrace();
     }
 
@@ -157,8 +166,8 @@ public class SongPanel extends JPanel {
 
     // Choose random beatmap directory
     Random rand = new Random();
-    String currentMapDir =
-        "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
+    String currentMapDir = "Songs/"
+        + beatmapFolders[rand.nextInt(beatmapFolders.length)];
 
     // Parse any .osu file for the background and audio file.
     return MapParser.parseBeatmap(currentMapDir);
@@ -169,25 +178,40 @@ public class SongPanel extends JPanel {
    * Fetches a new song and updates the panel.
    */
   public void newSong() {
+    
+    // Fade out audio
+    this.audioPlayer.shiftGain(0.0F, -50.0F, 400);
+    
+    
     this.metadata = getNewMetadata();
     String filePath = metadata[0] + "/";
     try {
-      this.songBG = ImageIO.read(new File(filePath + metadata[1]))
-          .getScaledInstance(this.width, this.height, Image.SCALE_SMOOTH);
-    } catch (IOException e) {
+      this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1]))
+          .getScaledInstance(this.width, this.height, Image.SCALE_SMOOTH));
+    }
+    catch (IOException e) {
       System.err.println("IOE@" + filePath + metadata[1]);
-    } catch (NullPointerException npe) {
+    }
+    catch (NullPointerException npe) {
       System.err.println("NPE@" + filePath + metadata[1]);
     }
 
-    // Swing, why?
+    // Swing, why is this necessary...?
     remove(optPanel);
     add(optPanel);
     repaint();
 
+    // Reload the audio player.
     this.audioPlayer.close();
-    this.audioPlayer = minim.loadFile(filePath + this.metadata[2], 1024);
+    this.audioPlayer = minim.loadFile(filePath + this.metadata[2]);
+
+    // Start playing again
+    // TODO: Fix mp3's with 0 lead-in time playing too late.
+    this.audioPlayer.setGain(-50.0F);
     this.audioPlayer.play();
+    this.audioPlayer.shiftGain(-50.0F, 0.0F, 400);
+    
+    
   }
 
   /**
@@ -208,6 +232,7 @@ public class SongPanel extends JPanel {
    */
   public void closeEverything() {
     this.parent.closeEverything();
+    this.minim.stop();
   }
 
   /**
@@ -283,5 +308,18 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fx, fy);
     }
 
+  }
+
+  /**
+   * Converts an Image into a BufferedImage when casting does not work.
+   * 
+   * @param img the Image to convert to a BufferedImage.
+   * @return the BufferedImage that was converted.
+   */
+  private BufferedImage convertImage(Image img) {
+    BufferedImage result = new BufferedImage(img.getWidth(null),
+        img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+    result.getGraphics().drawImage(img, 0, 0, null);
+    return result;
   }
 }
