@@ -68,13 +68,13 @@ public class SongPanel extends JPanel {
 
   /** The Minim library object */
   private final Minim minim;
-  
+
   /** Audio input data for Minim */
   private final AudioInput aInput;
-  
+
   /** Fast Fourier Transform object */
   private FFT fft;
-  
+
   /** Spectrum size */
   private final int specSize;
 
@@ -304,16 +304,18 @@ public class SongPanel extends JPanel {
 
     // Draw spectrum center line
     final int centerY = this.height >> 1;
-    final double specWidth = (double)this.width / this.specSize;
+    final double specWidth = (double) this.width / (double) this.specSize;
     g2.drawLine(0, centerY, this.width, centerY);
-    
+
     // Get FFT data
     fft.forward(this.aInput.left);
-    for(int i = 0; i < this.specSize; i++) {
+    for (int i = 0; i < this.specSize; i++) {
       float band = this.fft.getBand(i);
-      int bandExp = (int)(band * 1000F * (float)centerY);
-//      System.out.println(specSize + "," + band + "," + specWidth + "," + bandExp);
-      g2.drawLine((int)(specWidth * i), centerY - bandExp, (int)(specWidth * (i+1)), centerY);
+      int bandExp = (int) (band * 1000F * (float) centerY);
+      System.out.println(specSize + "," + band + "," + specWidth + ","
+          + bandExp);
+      g2.drawLine((int) (specWidth * i), centerY - bandExp,
+          (int) (specWidth * (i + 1)), centerY);
     }
   }
 

@@ -43,8 +43,8 @@ public class PlayerFrame extends JFrame {
     this.frameHeight = h;
     this.songPanel = new SongPanel(this, this.frameWidth, this.frameHeight);
     
+    this.songPanel.setVisible(true);
     add(this.songPanel);
-    this.songPanel.run();
     
     revalidate();
     repaint();
