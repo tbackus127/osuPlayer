@@ -32,49 +32,31 @@ import ddf.minim.analysis.FFT;
  */
 public class SongPanel extends JPanel {
 
-  /**
-   * Serial Version ID (default)
-   */
+  /** Serial version UID */
   private static final long serialVersionUID = 1L;
 
-  /**
-   * The song background from the beatmap folder
-   */
+  /** The song background from the beatmap folder */
   private BufferedImage songBG;
 
-  /**
-   * Reference to the child panel (OptionsPanel)
-   */
+  /** Reference to the child panel (OptionsPanel) */
   private OptionsPanel optPanel;
 
-  /**
-   * The audio player
-   */
+  /** The audio player */
   private AudioPlayer audioPlayer;
 
-  /**
-   * Width of this JPanel (fullscreen)
-   */
+  /** Width of this JPanel (fullscreen) */
   private int width;
 
-  /**
-   * Height of this JPanel (fullscreen)
-   */
+  /** Height of this JPanel (fullscreen) */
   private int height;
 
-  /**
-   * Reference to the parent JFrame (PlayerFrame)
-   */
+  /** Reference to the parent JFrame (PlayerFrame) */
   private PlayerFrame parent;
 
-  /**
-   * Font for drawing the title font
-   */
+  /** Font for drawing the title font */
   private Font titleFont;
 
-  /**
-   * Font for drawing the artist and source label font
-   */
+  /** Font for drawing the artist and source label font */
   private Font labelFont;
 
   /**
@@ -84,10 +66,17 @@ public class SongPanel extends JPanel {
    */
   private String[] metadata;
 
-  private Minim minim;
-  private AudioInput aInput;
+  /** The Minim library object */
+  private final Minim minim;
+  
+  /** Audio input data for Minim */
+  private final AudioInput aInput;
+  
+  /** Fast Fourier Transform object */
   private FFT fft;
-  private int specSize;
+  
+  /** Spectrum size */
+  private final int specSize;
 
   /**
    * Default constructor
@@ -235,8 +224,9 @@ public class SongPanel extends JPanel {
    * Calls the main JFrame's closeEverything() method
    */
   public void closeEverything() {
-    this.parent.closeEverything();
+    this.audioPlayer.close();
     this.minim.stop();
+    this.parent.closeEverything();
   }
 
   /**
@@ -322,7 +312,7 @@ public class SongPanel extends JPanel {
     for(int i = 0; i < this.specSize; i++) {
       float band = this.fft.getBand(i);
       int bandExp = (int)(band * 1000F * (float)centerY);
-      System.out.println(specSize + "," + band + "," + specWidth + "," + bandExp);
+//      System.out.println(specSize + "," + band + "," + specWidth + "," + bandExp);
       g2.drawLine((int)(specWidth * i), centerY - bandExp, (int)(specWidth * (i+1)), centerY);
     }
   }

@@ -6,6 +6,7 @@ import java.awt.Frame;
 import java.awt.LayoutManager;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 /**
  * This class controls the main frame of the music player (borderless,
@@ -43,10 +44,15 @@ public class PlayerFrame extends JFrame {
     this.songPanel = new SongPanel(this, this.frameWidth, this.frameHeight);
     
     add(this.songPanel);
+    this.songPanel.run();
+    
     revalidate();
     repaint();
   }
 
+  /**
+   * Closes and releases everything.
+   */
   public void closeEverything() {
     System.exit(0);
   }
