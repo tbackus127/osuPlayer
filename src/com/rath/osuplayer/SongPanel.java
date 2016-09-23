@@ -314,7 +314,7 @@ public class SongPanel extends JPanel {
 
     // Draw spectrum center line
     final int centerY = this.height >> 1;
-    final int specWidth = this.width / this.specSize;
+    final double specWidth = (double)this.width / this.specSize;
     g2.drawLine(0, centerY, this.width, centerY);
     
     // Get FFT data
@@ -322,10 +322,9 @@ public class SongPanel extends JPanel {
     for(int i = 0; i < this.specSize; i++) {
       float band = this.fft.getBand(i);
       int bandExp = (int)(band * 1000F * (float)centerY);
-      System.out.println(band + "," + specWidth + "," + bandExp);
-      g2.drawLine(specWidth * i, centerY - bandExp, specWidth * (i+1), centerY);
+      System.out.println(specSize + "," + band + "," + specWidth + "," + bandExp);
+      g2.drawLine((int)(specWidth * i), centerY - bandExp, (int)(specWidth * (i+1)), centerY);
     }
-    
   }
 
   /**
