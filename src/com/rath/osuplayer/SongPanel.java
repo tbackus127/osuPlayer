@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -105,6 +106,7 @@ public class SongPanel extends JPanel {
     this.metadata = getNewMetadata();
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
 
+    // Timer to update visualization
     this.repaintTimer = new Timer(0, new ActionListener() {
 
       @Override
@@ -114,13 +116,15 @@ public class SongPanel extends JPanel {
       }
 
     });
-
     this.repaintTimer.setDelay(Math.round(1000 / TARGET_FRAMERATE));
 
+    // Set up minim
     this.minim = new Minim(new MinimHandler());
     this.audioPlayer = minim
         .loadFile(this.metadata[0] + "/" + this.metadata[2]);
     this.aInput = minim.getLineIn(Minim.STEREO);
+    
+    // Set up FFT calculations
     this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
     this.specSize = this.fft.specSize();
 
@@ -155,8 +159,9 @@ public class SongPanel extends JPanel {
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);
     par.add(this.optPanel);
+    
+    // Start everything
     this.audioPlayer.play();
-
     this.repaintTimer.start();
   }
 
@@ -332,8 +337,11 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fx, fy);
     }
 
-    float[] fftReal = new float[this.specSize];
-    float[] fftImag = new float[this.specSize];
+    float[] fftReal = this.fft.getSpectrumReal();
+    float[] fftImag = this.fft.getSpectrumImaginary();
+    
+    
+    System.out.println(Arrays.toString(fftReal));
 
     // Draw spectrum center line
     final int centerY = this.height >> 1;
