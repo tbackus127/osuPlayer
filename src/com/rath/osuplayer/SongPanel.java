@@ -66,7 +66,7 @@ public class SongPanel extends JPanel {
   private Timer repaintTimer;
 
   /** Visualization frames per second */
-  private static final int TARGET_FRAMERATE = 60;
+  private static final int TARGET_FRAMERATE = 30;
 
   /**
    * Song metadata with the following indeces: 0: Beatmap directory 1:
@@ -107,10 +107,12 @@ public class SongPanel extends JPanel {
 
     this.repaintTimer = new Timer(0, new ActionListener() {
 
+      @Override
       public void actionPerformed(ActionEvent evt) {
-        parent.revalidate();
-        repaint();
+        parent.validate();
+        parent.repaint();
       }
+
     });
 
     this.repaintTimer.setDelay(Math.round(1000 / TARGET_FRAMERATE));
@@ -196,6 +198,8 @@ public class SongPanel extends JPanel {
    */
   public void newSong() {
 
+    this.repaintTimer.stop();
+
     // Fade out audio
     this.audioPlayer.shiftGain(0.0F, -50.0F, 400);
 
@@ -224,6 +228,7 @@ public class SongPanel extends JPanel {
     // Start playing again
     // TODO: Fix mp3's with 0 lead-in time playing too late.
     this.audioPlayer.setGain(-50.0F);
+    this.repaintTimer.start();
     this.audioPlayer.play();
     this.audioPlayer.shiftGain(-50.0F, 0.0F, 400);
 
@@ -237,7 +242,9 @@ public class SongPanel extends JPanel {
     if (this.audioPlayer.isPlaying()) {
 
       this.audioPlayer.pause();
+      this.repaintTimer.stop();
     } else {
+      this.repaintTimer.start();
       this.audioPlayer.play();
     }
   }
@@ -325,13 +332,19 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fx, fy);
     }
 
+    float[] fftReal = new float[this.specSize];
+    float[] fftImag = new float[this.specSize];
+
     // Draw spectrum center line
     final int centerY = this.height >> 1;
     final double specWidth = (double) this.width / (double) this.specSize;
     g2.drawLine(0, centerY, this.width, centerY);
 
     // Get FFT data
-    fft.forward(this.aInput.left);
+    fft.forward(this.aInput.mix);
+
+    fftReal = this.fft.getSpectrumReal();
+    fftImag = this.fft.getSpectrumImaginary();
     for (int i = 0; i < this.specSize; i++) {
       float band = this.fft.getBand(i);
       int bandExp = (int) (band * 1000F * (float) centerY);
