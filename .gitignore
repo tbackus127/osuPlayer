@@ -12,6 +12,7 @@ local.properties
 .loadpath
 .recommenders
 .classpath
+.project
 
 # Eclipse Core
 .project
@@ -51,3 +52,4 @@ local.properties
 
 # Code Recommenders
 .recommenders/
+/bin1/
