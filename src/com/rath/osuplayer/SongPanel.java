@@ -109,7 +109,7 @@ public class SongPanel extends JPanel {
 
       @Override
       public void actionPerformed(ActionEvent evt) {
-        parent.validate();
+        parent.revalidate();
         parent.repaint();
       }
 
