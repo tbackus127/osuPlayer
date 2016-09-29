@@ -10,6 +10,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -18,6 +20,7 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import ddf.minim.AudioInput;
 import ddf.minim.AudioPlayer;
@@ -59,6 +62,12 @@ public class SongPanel extends JPanel {
   /** Font for drawing the artist and source label font */
   private Font labelFont;
 
+  /** Timer for repainting the window */
+  private Timer repaintTimer;
+
+  /** Visualization frames per second */
+  private static final int TARGET_FRAMERATE = 60;
+
   /**
    * Song metadata with the following indeces: 0: Beatmap directory 1:
    * Background image filename 2: Audio filename 3: Song title 4: Song artist 5:
@@ -95,6 +104,17 @@ public class SongPanel extends JPanel {
     this.parent = par;
     this.metadata = getNewMetadata();
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
+
+    this.repaintTimer = new Timer(0, new ActionListener() {
+
+      public void actionPerformed(ActionEvent evt) {
+        parent.revalidate();
+        repaint();
+      }
+    });
+
+    this.repaintTimer.setDelay(Math.round(1000 / TARGET_FRAMERATE));
+
     this.minim = new Minim(new MinimHandler());
     this.audioPlayer = minim
         .loadFile(this.metadata[0] + "/" + this.metadata[2]);
@@ -134,6 +154,8 @@ public class SongPanel extends JPanel {
     this.optPanel = new OptionsPanel(this);
     par.add(this.optPanel);
     this.audioPlayer.play();
+
+    this.repaintTimer.start();
   }
 
   /**
@@ -226,6 +248,7 @@ public class SongPanel extends JPanel {
   public void closeEverything() {
     this.audioPlayer.close();
     this.minim.stop();
+    this.repaintTimer.stop();
     this.parent.closeEverything();
   }
 
@@ -312,8 +335,9 @@ public class SongPanel extends JPanel {
     for (int i = 0; i < this.specSize; i++) {
       float band = this.fft.getBand(i);
       int bandExp = (int) (band * 1000F * (float) centerY);
-      System.out.println(specSize + "," + band + "," + specWidth + ","
-          + bandExp);
+
+      // System.out.println(specSize + "," + band + "," + specWidth + "," +
+      // bandExp);
       g2.drawLine((int) (specWidth * i), centerY - bandExp,
           (int) (specWidth * (i + 1)), centerY);
     }
