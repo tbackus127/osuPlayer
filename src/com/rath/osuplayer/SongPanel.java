@@ -16,7 +16,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -38,6 +37,18 @@ public class SongPanel extends JPanel {
   
   /** Serial version UID */
   private static final long serialVersionUID = 1L;
+  
+  /** The minimum hertz required for a band. */
+  private static final int MIN_BANDWIDTH = 128;
+  
+  /** How many bands are in an octave. */
+  private static final int BANDS_PER_OCTAVE = 8;
+  
+  /** Band vertical scaling. */
+  private static final int BAND_SCALE = 8;
+  
+  /** Visualization frames per second */
+  private static final int TARGET_FRAMERATE = 30;
   
   /** The song background from the beatmap folder */
   private BufferedImage songBG;
@@ -66,9 +77,6 @@ public class SongPanel extends JPanel {
   /** Timer for repainting the window */
   private Timer repaintTimer;
   
-  /** Visualization frames per second */
-  private static final int TARGET_FRAMERATE = 30;
-  
   /**
    * Song metadata with the following indeces: 0: Beatmap directory 1: Background image filename 2: Audio filename 3:
    * Song title 4: Song artist 5: Song source
@@ -83,9 +91,6 @@ public class SongPanel extends JPanel {
   
   /** Fast Fourier Transform object */
   private FFT fft;
-  
-  /** Spectrum size */
-  private final int specSize;
   
   /**
    * Default constructor
@@ -119,13 +124,12 @@ public class SongPanel extends JPanel {
     
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 1024);
+    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 512);
     this.aInput = minim.getLineIn(Minim.STEREO);
     
     // Set up FFT calculations
     this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
-    this.fft.logAverages(22, 10);
-    this.specSize = this.fft.specSize();
+    this.fft.logAverages(MIN_BANDWIDTH, BANDS_PER_OCTAVE);
     
     // Set the background of this panel
     try {
@@ -198,7 +202,7 @@ public class SongPanel extends JPanel {
     this.repaintTimer.stop();
     
     // Fade out audio
-    this.audioPlayer.shiftGain(0.0F, -50.0F, 400);
+    this.audioPlayer.setGain(-50.0F);
     
     this.metadata = getNewMetadata();
     String filePath = metadata[0] + "/";
@@ -222,10 +226,9 @@ public class SongPanel extends JPanel {
     
     // Start playing again
     // TODO: Fix mp3's with 0 lead-in time playing too late.
-    this.audioPlayer.setGain(-50.0F);
     this.repaintTimer.start();
     this.audioPlayer.play();
-    this.audioPlayer.shiftGain(-50.0F, 0.0F, 400);
+    this.audioPlayer.setGain(0.0F);
     
   }
   
@@ -328,15 +331,16 @@ public class SongPanel extends JPanel {
     
     // Draw spectrum center line
     final int centerY = this.height >> 1;
-    final double specWidth = (double) this.width / (double) this.specSize;
+    final double specWidth = (double) (this.width / (BANDS_PER_OCTAVE * 10));
     g2.drawLine(0, centerY, this.width, centerY);
     
     // Get FFT data
     this.fft.forward(this.aInput.mix);
     
-    for (int i = 0; i < 100; i++) {
-      final int bandExp = (int)this.fft.getAvg(i);
-      g2.drawLine((int) (specWidth * i), centerY - bandExp, (int) (specWidth * (i + 1)), centerY);
+    // Draw frequency bands
+    for (int i = 0; i < this.fft.avgSize(); i++) {
+      final int bandExp = (int) (this.fft.getAvg(i) * BAND_SCALE);
+      g2.fillRect((int) (specWidth * i) + 1, centerY - bandExp, (int) specWidth, bandExp << 1);
     }
   }
   
