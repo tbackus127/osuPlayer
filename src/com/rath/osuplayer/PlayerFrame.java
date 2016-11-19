@@ -6,7 +6,6 @@ import java.awt.Frame;
 import java.awt.LayoutManager;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 /**
  * This class controls the main frame of the music player (borderless,

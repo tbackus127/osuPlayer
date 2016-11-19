@@ -32,7 +32,7 @@ import ddf.minim.analysis.FFT;
  * The main graphics panel. Song backgrounds and info will be rendered here.
  * 
  * @author Administrator
- *         
+ * 
  */
 public class SongPanel extends JPanel {
   
@@ -119,11 +119,12 @@ public class SongPanel extends JPanel {
     
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2]);
+    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 1024);
     this.aInput = minim.getLineIn(Minim.STEREO);
     
     // Set up FFT calculations
     this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
+    this.fft.logAverages(22, 10);
     this.specSize = this.fft.specSize();
     
     // Set the background of this panel
@@ -133,7 +134,7 @@ public class SongPanel extends JPanel {
       // back into a BufferedImage
       this.songBG = convertImage(ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
-          
+      
       // Load and set up fonts
       File fontFile = new File("res/fonts/JAPANSANS80.OTF");
       this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
@@ -325,24 +326,16 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fx, fy);
     }
     
-    float[] fftReal = this.fft.getSpectrumReal();
-    float[] fftImag = this.fft.getSpectrumImaginary();
-    
-    System.out.println(Arrays.toString(fftReal));
-    
     // Draw spectrum center line
     final int centerY = this.height >> 1;
     final double specWidth = (double) this.width / (double) this.specSize;
     g2.drawLine(0, centerY, this.width, centerY);
     
     // Get FFT data
-    fft.forward(this.aInput.mix);
+    this.fft.forward(this.aInput.mix);
     
-    fftReal = this.fft.getSpectrumReal();
-    fftImag = this.fft.getSpectrumImaginary();
-    for (int i = 0; i < this.specSize; i++) {
-      float band = this.fft.getBand(i);
-      int bandExp = (int) (band * 1000F * (float) centerY);
+    for (int i = 0; i < 100; i++) {
+      final int bandExp = (int)this.fft.getAvg(i);
       g2.drawLine((int) (specWidth * i), centerY - bandExp, (int) (specWidth * (i + 1)), centerY);
     }
   }
