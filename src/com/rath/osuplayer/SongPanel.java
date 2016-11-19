@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,14 +36,14 @@ import ddf.minim.analysis.FFT;
  */
 public class SongPanel extends JPanel {
   
-  /** Serial version UID */
+  /** Serial version UID. */
   private static final long serialVersionUID = 1L;
   
   /** The minimum hertz required for a band. */
-  private static final int MIN_BANDWIDTH = 128;
+  private static final int MIN_BANDWIDTH = 440;
   
   /** How many bands are in an octave. */
-  private static final int BANDS_PER_OCTAVE = 8;
+  private static final int BANDS_PER_OCTAVE = 32;
   
   /** Band vertical scaling. */
   private static final int BAND_SCALE = 8;
@@ -50,31 +51,31 @@ public class SongPanel extends JPanel {
   /** Visualization frames per second */
   private static final int TARGET_FRAMERATE = 30;
   
-  /** The song background from the beatmap folder */
+  /** The song background from the beatmap folder. */
   private BufferedImage songBG;
   
-  /** Reference to the child panel (OptionsPanel) */
+  /** Reference to the child panel (OptionsPanel). */
   private OptionsPanel optPanel;
   
-  /** The audio player */
+  /** The audio player. */
   private AudioPlayer audioPlayer;
   
-  /** Width of this JPanel (fullscreen) */
+  /** Width of this JPanel (fullscreen). */
   private int width;
   
-  /** Height of this JPanel (fullscreen) */
+  /** Height of this JPanel (fullscreen). */
   private int height;
   
-  /** Reference to the parent JFrame (PlayerFrame) */
+  /** Reference to the parent JFrame (PlayerFrame). */
   private PlayerFrame parent;
   
-  /** Font for drawing the title font */
+  /** Font for drawing the title font. */
   private Font titleFont;
   
-  /** Font for drawing the artist and source label font */
+  /** Font for drawing the artist and source label font. */
   private Font labelFont;
   
-  /** Timer for repainting the window */
+  /** Timer for repainting the window. */
   private Timer repaintTimer;
   
   /**
@@ -83,17 +84,17 @@ public class SongPanel extends JPanel {
    */
   private String[] metadata;
   
-  /** The Minim library object */
+  /** The Minim library object. */
   private final Minim minim;
   
-  /** Audio input data for Minim */
+  /** Audio input data for Minim. */
   private final AudioInput aInput;
   
-  /** Fast Fourier Transform object */
+  /** Fast Fourier Transform object. */
   private FFT fft;
   
   /**
-   * Default constructor
+   * Default constructor.
    * 
    * @param meta metadata from the .osu file
    * @param parent reference to the parent PlayerFrame
@@ -159,12 +160,13 @@ public class SongPanel extends JPanel {
     par.add(this.optPanel);
     
     // Start everything
-    this.audioPlayer.play();
     this.repaintTimer.start();
+    
+    this.audioPlayer.play();
   }
   
   /**
-   * Parses another random beatmap and loads its metadata
+   * Parses another random beatmap and loads its metadata.
    * 
    * @return a String[] with indeces: {directory, BG-image, audio file, title, artist, source}
    */
@@ -199,13 +201,13 @@ public class SongPanel extends JPanel {
    */
   public void newSong() {
     
+    this.audioPlayer.close();
     this.repaintTimer.stop();
-    
-    // Fade out audio
-    this.audioPlayer.setGain(-50.0F);
     
     this.metadata = getNewMetadata();
     String filePath = metadata[0] + "/";
+    this.audioPlayer = minim.loadFile(filePath + this.metadata[2]);
+    
     try {
       this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
@@ -215,20 +217,12 @@ public class SongPanel extends JPanel {
       System.err.println("NPE@" + filePath + metadata[1]);
     }
     
-    // Swing, why is this necessary...?
-    remove(optPanel);
-    add(optPanel);
     repaint();
-    
-    // Reload the audio player.
-    this.audioPlayer.close();
-    this.audioPlayer = minim.loadFile(filePath + this.metadata[2]);
     
     // Start playing again
     // TODO: Fix mp3's with 0 lead-in time playing too late.
     this.repaintTimer.start();
     this.audioPlayer.play();
-    this.audioPlayer.setGain(0.0F);
     
   }
   
@@ -289,6 +283,7 @@ public class SongPanel extends JPanel {
    */
   @Override
   public void paintComponent(Graphics g) {
+    
     Graphics2D g2 = (Graphics2D) g;
     g2.drawImage(this.songBG, 0, 0, null);
     
@@ -331,16 +326,27 @@ public class SongPanel extends JPanel {
     
     // Draw spectrum center line
     final int centerY = this.height >> 1;
-    final double specWidth = (double) (this.width / (BANDS_PER_OCTAVE * 10));
+    final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     g2.drawLine(0, centerY, this.width, centerY);
     
     // Get FFT data
     this.fft.forward(this.aInput.mix);
     
-    // Draw frequency bands
-    for (int i = 0; i < this.fft.avgSize(); i++) {
-      final int bandExp = (int) (this.fft.getAvg(i) * BAND_SCALE);
-      g2.fillRect((int) (specWidth * i) + 1, centerY - bandExp, (int) specWidth, bandExp << 1);
+    // Draw spectrum
+    int lastBandHeight = (int) (this.fft.getAvg(0) * BAND_SCALE);
+    for (int i = 1; i < this.fft.avgSize(); i++) {
+      final int bandHeight = (int) (this.fft.getAvg(i) * BAND_SCALE);
+      
+      final int xPointA = (int) (specWidth * (i - 1));
+      final int xPointB = (int) (specWidth * i);
+      final Polygon bandSmooth = new Polygon();
+      bandSmooth.addPoint(xPointA, centerY - lastBandHeight);
+      bandSmooth.addPoint(xPointB, centerY - bandHeight);
+      bandSmooth.addPoint(xPointB, centerY + bandHeight);
+      bandSmooth.addPoint(xPointA, centerY + lastBandHeight);
+      g2.fill(bandSmooth);
+      
+      lastBandHeight = bandHeight;
     }
   }
   

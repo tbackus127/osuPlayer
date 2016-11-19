@@ -8,31 +8,30 @@ import java.awt.LayoutManager;
 import javax.swing.JFrame;
 
 /**
- * This class controls the main frame of the music player (borderless,
- * fullscreen)
+ * This class controls the main frame of the music player (borderless, fullscreen)
  * 
  * @author Administrator
  * 
  */
 public class PlayerFrame extends JFrame {
-
+  
   /**
    * Serial version (default)
    */
   private static final long serialVersionUID = 1L;
-
+  
   private final SongPanel songPanel;
   
   /**
    * Width of this frame
    */
   private final int frameWidth;
-
+  
   /**
    * Height of this frame
    */
   private final int frameHeight;
-
+  
   /**
    * Default constructor
    */
@@ -48,7 +47,7 @@ public class PlayerFrame extends JFrame {
     revalidate();
     repaint();
   }
-
+  
   /**
    * Closes and releases everything.
    */
@@ -65,7 +64,7 @@ public class PlayerFrame extends JFrame {
   public Dimension getPreferredSize() {
     return new Dimension(this.frameWidth, this.frameHeight);
   }
-
+  
   /**
    * Returns the size of this frame
    * 
@@ -75,7 +74,7 @@ public class PlayerFrame extends JFrame {
   public Dimension getSize() {
     return getPreferredSize();
   }
-
+  
   /**
    * Gets the default operation of the close button
    * 
@@ -85,7 +84,7 @@ public class PlayerFrame extends JFrame {
   public int getDefaultCloseOperation() {
     return JFrame.EXIT_ON_CLOSE;
   }
-
+  
   /**
    * Returns the initial state of the frame
    * 
@@ -95,7 +94,7 @@ public class PlayerFrame extends JFrame {
   public int getExtendedState() {
     return Frame.MAXIMIZED_BOTH;
   }
-
+  
   /**
    * Returns the LayoutManager of this frame
    * 
