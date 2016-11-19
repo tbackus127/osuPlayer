@@ -46,10 +46,16 @@ public class SongPanel extends JPanel {
   private static final int BANDS_PER_OCTAVE = 32;
   
   /** Band vertical scaling. */
-  private static final int BAND_SCALE = 10;
+  private static final int BAND_SCALE = 1;
   
   /** Visualization frames per second */
   private static final int TARGET_FRAMERATE = 30;
+  
+  /** Color for spectrum foreground. */
+  private static final Color COLOR_SPEC_FG = new Color(96, 127, 255, 100);
+  
+  /** Color for spectrum background. */
+  private static final Color COLOR_SPEC_BG = new Color(255, 255, 255, 220);
   
   /** The song background from the beatmap folder. */
   private BufferedImage songBG;
@@ -243,6 +249,7 @@ public class SongPanel extends JPanel {
   
   /**
    * Checks if the audio is currently paused (used for control rendering).
+   * 
    * @return true if audio is paused; false otherwise.
    */
   public boolean isPaused() {
@@ -347,12 +354,24 @@ public class SongPanel extends JPanel {
       
       final int xPointA = (int) (specWidth * (i - 1));
       final int xPointB = (int) (specWidth * i);
+      
+      // Background spectrum
       final Polygon bandSmooth = new Polygon();
       bandSmooth.addPoint(xPointA, centerY - lastBandHeight);
       bandSmooth.addPoint(xPointB, centerY - bandHeight);
       bandSmooth.addPoint(xPointB, centerY + bandHeight + 1);
       bandSmooth.addPoint(xPointA, centerY + lastBandHeight + 1);
+      g2.setColor(COLOR_SPEC_FG);
       g2.fill(bandSmooth);
+      
+      
+      final Polygon bandSmoothOverlay = new Polygon();
+      bandSmoothOverlay.addPoint(xPointA, centerY - lastBandHeight / 2);
+      bandSmoothOverlay.addPoint(xPointB, centerY - bandHeight / 2);
+      bandSmoothOverlay.addPoint(xPointB, centerY + (bandHeight + 1) / 2);
+      bandSmoothOverlay.addPoint(xPointA, centerY + (lastBandHeight + 1) / 2);
+      g2.setColor(COLOR_SPEC_BG);
+      g2.fill(bandSmoothOverlay);
       
       lastBandHeight = bandHeight;
     }
