@@ -46,7 +46,7 @@ public class SongPanel extends JPanel {
   private static final int BANDS_PER_OCTAVE = 32;
   
   /** Band vertical scaling. */
-  private static final int BAND_SCALE = 8;
+  private static final int BAND_SCALE = 10;
   
   /** Visualization frames per second */
   private static final int TARGET_FRAMERATE = 30;
@@ -350,8 +350,8 @@ public class SongPanel extends JPanel {
       final Polygon bandSmooth = new Polygon();
       bandSmooth.addPoint(xPointA, centerY - lastBandHeight);
       bandSmooth.addPoint(xPointB, centerY - bandHeight);
-      bandSmooth.addPoint(xPointB, centerY + bandHeight);
-      bandSmooth.addPoint(xPointA, centerY + lastBandHeight);
+      bandSmooth.addPoint(xPointB, centerY + bandHeight + 1);
+      bandSmooth.addPoint(xPointA, centerY + lastBandHeight + 1);
       g2.fill(bandSmooth);
       
       lastBandHeight = bandHeight;
