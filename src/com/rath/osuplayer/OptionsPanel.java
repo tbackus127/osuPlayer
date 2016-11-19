@@ -34,7 +34,8 @@ public class OptionsPanel extends JPanel {
    */
   private int height;
   
-  private Image playPauseImg;
+  private Image playImg;
+  private Image pauseImg;
   private Image newSongImg;
   private Image closeImg;
   
@@ -71,7 +72,8 @@ public class OptionsPanel extends JPanel {
     
     // Load images
     try {
-      this.playPauseImg = ImageIO.read(new File("res/img/pause.png"));
+      this.playImg = ImageIO.read(new File("res/img/play.png"));
+      this.pauseImg = ImageIO.read(new File("res/img/pause.png"));
       this.newSongImg = ImageIO.read(new File("res/img/refresh.png"));
       this.closeImg = ImageIO.read(new File("res/img/close.png"));
     } catch (IOException e) {
@@ -79,13 +81,18 @@ public class OptionsPanel extends JPanel {
     }
     
     // Control button setup
-    this.playPauseButton = new JButton(new ImageIcon(this.playPauseImg));
+    this.playPauseButton = new JButton(new ImageIcon(this.pauseImg));
     this.playPauseButton.setBorder(BorderFactory.createEmptyBorder());
     this.playPauseButton.setContentAreaFilled(false);
     this.playPauseButton.addActionListener(new ActionListener() {
       
       @Override
       public void actionPerformed(ActionEvent evt) {
+        if(parent.isPaused()) {
+          playPauseButton.setIcon(new ImageIcon(pauseImg));
+        } else {
+          playPauseButton.setIcon(new ImageIcon(playImg));
+        }
         parent.togglePause();
       }
     });
@@ -98,6 +105,7 @@ public class OptionsPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent evt) {
         parent.newSong();
+        playPauseButton.setIcon(new ImageIcon(pauseImg));
       }
     });
     

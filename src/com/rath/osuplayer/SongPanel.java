@@ -242,6 +242,14 @@ public class SongPanel extends JPanel {
   }
   
   /**
+   * Checks if the audio is currently paused (used for control rendering).
+   * @return true if audio is paused; false otherwise.
+   */
+  public boolean isPaused() {
+    return !this.audioPlayer.isPlaying();
+  }
+  
+  /**
    * Calls the main JFrame's closeEverything() method
    */
   public void closeEverything() {
