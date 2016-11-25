@@ -5,7 +5,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 
 /**
- * @author Tim Backus tbackus127@gmail.com
+ * @author Rathuldr
  */
 public class OsuPlayer {
   
