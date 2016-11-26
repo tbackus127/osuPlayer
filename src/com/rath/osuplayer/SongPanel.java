@@ -28,6 +28,7 @@ import ddf.minim.AudioPlayer;
 import ddf.minim.Minim;
 import ddf.minim.analysis.FFT;
 
+
 /**
  * The main graphics panel. Song backgrounds and info will be rendered here.
  * 
@@ -46,10 +47,10 @@ public class SongPanel extends JPanel {
   private static final int BANDS_PER_OCTAVE = 32;
   
   /** Band vertical scaling. */
-  private static final int BAND_SCALE = 1;
+  private static final int BAND_SCALE = 10;
   
   /** Visualization frames per second */
-  private static final int TARGET_FRAMERATE = 30;
+  private static final int TARGET_FRAMERATE = 60;
   
   /** Color for spectrum foreground. */
   private static final Color COLOR_SPEC_FG = new Color(96, 127, 255, 100);
