@@ -92,6 +92,7 @@ public class OptionsPanel extends JPanel {
     }
 
     // Control button setup
+    // Pause button
     this.playPauseButton = new JButton(new ImageIcon(this.pauseImg));
     this.playPauseButton.setBorder(BorderFactory.createEmptyBorder());
     this.playPauseButton.setContentAreaFilled(false);
@@ -100,9 +101,9 @@ public class OptionsPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent evt) {
         if (parent.isPaused()) {
-          playPauseButton.setIcon(new ImageIcon(pauseImg));
+          playPauseButton.setIcon(new ImageIcon(pauseImgHover));
         } else {
-          playPauseButton.setIcon(new ImageIcon(playImg));
+          playPauseButton.setIcon(new ImageIcon(playImgHover));
         }
         parent.togglePause();
       }
@@ -111,7 +112,7 @@ public class OptionsPanel extends JPanel {
 
       @Override
       public void mouseEntered(MouseEvent evt) {
-        if(parent.isPaused()) {
+        if (parent.isPaused()) {
           playPauseButton.setIcon(new ImageIcon(playImgHover));
         } else {
           playPauseButton.setIcon(new ImageIcon(pauseImgHover));
@@ -120,7 +121,7 @@ public class OptionsPanel extends JPanel {
 
       @Override
       public void mouseExited(MouseEvent evt) {
-        if(parent.isPaused()) {
+        if (parent.isPaused()) {
           playPauseButton.setIcon(new ImageIcon(playImg));
         } else {
           playPauseButton.setIcon(new ImageIcon(pauseImg));
@@ -129,6 +130,7 @@ public class OptionsPanel extends JPanel {
 
     });
 
+    // New song button
     this.newSongButton = new JButton(new ImageIcon(this.newSongImg));
     this.newSongButton.setBorder(BorderFactory.createEmptyBorder());
     this.newSongButton.setContentAreaFilled(false);
@@ -154,6 +156,7 @@ public class OptionsPanel extends JPanel {
 
     });
 
+    // Close button
     this.closeButton = new JButton(new ImageIcon(this.closeImg));
     this.closeButton.setBorder(BorderFactory.createEmptyBorder());
     this.closeButton.setContentAreaFilled(false);
