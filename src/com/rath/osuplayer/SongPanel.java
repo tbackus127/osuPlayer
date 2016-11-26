@@ -136,7 +136,12 @@ public class SongPanel extends JPanel {
     this.aInput = minim.getLineIn(Minim.STEREO);
     
     // Set up FFT calculations
-    this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
+    try {
+      this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());      
+    } catch (NullPointerException npe) {
+      System.err.println("Stereo Mix not enabled!");
+      return;
+    }
     this.fft.logAverages(MIN_BANDWIDTH, BANDS_PER_OCTAVE);
     
     // Set the background of this panel
