@@ -23,6 +23,11 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.NotSupportedException;
+import com.mpatric.mp3agic.UnsupportedTagException;
+
 import ddf.minim.AudioInput;
 import ddf.minim.AudioPlayer;
 import ddf.minim.Minim;
@@ -65,6 +70,9 @@ public class SongPanel extends JPanel {
   
   /** The audio player. */
   private AudioPlayer audioPlayer;
+  
+  /** Runtime in seconds of the current song. */
+  private int songRuntime;
   
   /** Width of this JPanel (fullscreen). */
   private int width;
@@ -135,8 +143,12 @@ public class SongPanel extends JPanel {
     
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
+    String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
+    stripMP3Tags(audioFileStr);
+    this.audioPlayer = minim.loadFile(audioFileStr, 2048);
     this.aInput = minim.getLineIn(Minim.STEREO);
+    
+    this.songRuntime = this.audioPlayer.length() / 100;
     
     // Set up FFT calculations
     try {
@@ -222,8 +234,10 @@ public class SongPanel extends JPanel {
     this.repaintTimer.stop();
     
     this.metadata = getNewMetadata();
-    String filePath = metadata[0] + "/";
-    this.audioPlayer = minim.loadFile(filePath + this.metadata[2]);
+    final String filePath = metadata[0] + "/";
+    final String audioFileStr = filePath + this.metadata[2];
+    stripMP3Tags(audioFileStr);
+    this.audioPlayer = minim.loadFile(audioFileStr);
     
     try {
       this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width,
@@ -234,10 +248,7 @@ public class SongPanel extends JPanel {
       System.err.println("NPE@" + filePath + metadata[1]);
     }
     
-    repaint();
-    
     // Start playing again
-    // TODO: Fix mp3's with 0 lead-in time playing too late.
     this.repaintTimer.start();
     this.audioPlayer.play();
     
@@ -247,11 +258,10 @@ public class SongPanel extends JPanel {
    * Switches the current audio state from playing to paused, and vice-versa.
    */
   public void togglePause() {
-    System.err.println("Pause toggled.");
     if (this.audioPlayer.isPlaying()) {
       
-      this.audioPlayer.pause();
       this.repaintTimer.stop();
+      this.audioPlayer.pause();
     } else {
       this.repaintTimer.start();
       this.audioPlayer.play();
@@ -399,14 +409,35 @@ public class SongPanel extends JPanel {
     return result;
   }
   
-  /**
-   * Converts a band's value to decibels.
-   * 
-   * @param x the band value.
-   * @return a float.
-   */
-  private static final float getDecibels(final float x) {
-    if (x == 0) return 0;
-    return 10.0F * (float) Math.log10(x);
+  private static final void stripMP3Tags(final String s) {
+    System.out.println("Stripping " + s);
+    final String newFileName = s.substring(0, s.length() - 4) + "0.mp3";
+    try {
+      final Mp3File mf = new Mp3File(s);
+      if (mf.hasId3v1Tag()) mf.removeId3v1Tag();
+      if (mf.hasId3v2Tag()) mf.removeId3v2Tag();
+      if (mf.hasCustomTag()) mf.removeCustomTag();
+      
+      // Save temp file
+      mf.save(newFileName);
+      
+      final File originalMp3 = new File(s);
+      originalMp3.delete();
+      final File strippedMp3 = new File(newFileName);
+      strippedMp3.renameTo(originalMp3);
+      
+    } catch (UnsupportedTagException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InvalidDataException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (NotSupportedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 }
