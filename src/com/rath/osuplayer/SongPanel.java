@@ -55,10 +55,10 @@ public class SongPanel extends JPanel {
   private static final int TARGET_FRAMERATE = 120;
 
   /** Color for spectrum foreground. */
-  private static final Color COLOR_SPEC_BG = new Color(96, 127, 255, 100);
+  private static final Color COLOR_SPEC_BG = new Color(96, 127, 255, 120);
 
   /** Color for spectrum background. */
-  private static final Color COLOR_SPEC_FG = new Color(255, 255, 255, 220);
+  private static final Color COLOR_SPEC_FG = new Color(255, 255, 255, 180);
 
   /** Multiplier for foreground spectrum size. */
   private static final double FG_SPEC_MULT = 0.5D;
@@ -492,6 +492,15 @@ public class SongPanel extends JPanel {
     return newFileName;
   }
 
+  /**
+   * Calculates the curve point for Beizer curves.
+   * 
+   * @param x1 the first point's X coordinate.
+   * @param y1 the first point's Y coordinate.
+   * @param x2 the second point's X coordinate.
+   * @param y2 the second point's Y coordinate.
+   * @return a Point with the result.
+   */
   private static final Point calcPoint3(final double x1, final double y1, final double x2, final double y2) {
     final double arcSize = 10;
     final double d1 = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
