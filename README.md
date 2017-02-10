@@ -4,6 +4,13 @@ This project will (when finished) be able to simply be ran inside the main direc
 It will choose a random beatmap and display its background, song title, artist, and source by parsing the beatmap file.
 Along with a map's metadata, it will feature a spectrum visualization, song progress bar, and perhaps even storyboard/video rendering.
 
+
+#### How to Compile
+
+1. Ensure the latest version of the JDK is installed (both 'java' and 'javac' are valid commands).
+2. Open a terminal in the project root.
+3. Compile with 'javac -cp lib/* src/com/rath/osuplayer/*.java
+
 #### How to Run
 
 1. You will first need a collection of osu! beatmaps, unzipped, in a folder named "Songs" in the project root directory.
