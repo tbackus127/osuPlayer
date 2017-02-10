@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -106,6 +105,9 @@ public class SongPanel extends JPanel {
   /** Audio input data for Minim. */
   private final AudioInput aInput;
 
+  /** Handle to the last played audio file (tags stripped). */
+  private File lastAudioFile;
+
   /** Fast Fourier Transform object. */
   private FFT fft;
 
@@ -145,9 +147,10 @@ public class SongPanel extends JPanel {
 
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    final String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
-    stripMP3Tags(audioFileStr);
+    String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
+    audioFileStr = stripMP3Tags(audioFileStr);
     this.audioPlayer = minim.loadFile(audioFileStr, 2048);
+    this.lastAudioFile = new File(audioFileStr);
     this.aInput = minim.getLineIn(Minim.STEREO);
 
     this.songRuntime = this.audioPlayer.length() / 1000;
@@ -161,15 +164,11 @@ public class SongPanel extends JPanel {
       System.err.println("Stereo Mix not enabled!");
       return;
     }
-
     this.fft.linAverages(NUM_BANDS);
-    // this.fft.logAverages(MIN_BANDWIDTH, NUM_BANDS);
 
     // Set the background of this panel
     try {
 
-      // Convert the BufferedImage that was converted into a non-castable Image
-      // back into a BufferedImage
       this.songBG = convertImage(ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
 
@@ -195,7 +194,6 @@ public class SongPanel extends JPanel {
 
     // Start everything
     this.repaintTimer.start();
-
     this.audioPlayer.play();
   }
 
@@ -235,14 +233,17 @@ public class SongPanel extends JPanel {
    */
   public void newSong() {
 
-    this.audioPlayer.close();
     this.repaintTimer.stop();
+    this.audioPlayer.close();
+
+    this.lastAudioFile.delete();
 
     this.metadata = getNewMetadata();
     final String filePath = metadata[0] + "/";
-    final String audioFileStr = filePath + this.metadata[2];
-    stripMP3Tags(audioFileStr);
+    String audioFileStr = filePath + this.metadata[2];
+    audioFileStr = stripMP3Tags(audioFileStr);
     this.audioPlayer = minim.loadFile(audioFileStr);
+    this.lastAudioFile = new File(audioFileStr);
 
     try {
       this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width,
@@ -256,8 +257,8 @@ public class SongPanel extends JPanel {
     }
 
     // Start playing again
-    this.repaintTimer.start();
     this.audioPlayer.play();
+    this.repaintTimer.start();
 
   }
 
@@ -266,13 +267,14 @@ public class SongPanel extends JPanel {
    */
   public void togglePause() {
     if (this.audioPlayer.isPlaying()) {
-
       this.repaintTimer.stop();
       this.audioPlayer.pause();
+      this.parent.repaint();
     } else {
       this.repaintTimer.start();
       this.audioPlayer.play();
     }
+
   }
 
   /**
@@ -290,6 +292,8 @@ public class SongPanel extends JPanel {
   public void closeEverything() {
     this.audioPlayer.close();
     this.minim.stop();
+    this.minim.dispose();
+    this.lastAudioFile.delete();
     this.repaintTimer.stop();
     this.parent.closeEverything();
   }
@@ -372,6 +376,12 @@ public class SongPanel extends JPanel {
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     g2.drawLine(0, centerY, this.width, centerY);
 
+    if (!this.audioPlayer.isPlaying()) return;
+
+    /*
+     * Begin FFT visualization
+     */
+
     // Get FFT data
     this.fft.forward(this.aInput.mix);
 
@@ -449,17 +459,13 @@ public class SongPanel extends JPanel {
    * 
    * @param s relative path to the .mp3 file as a String.
    */
-  private static final void stripMP3Tags(final String s) {
+  private static final String stripMP3Tags(final String s) {
 
-    System.out.println("Stripping " + s);
     final String newFileName = s.substring(0, s.length() - 4) + "0.mp3";
     try {
 
       // Strip tags if they exist
       final Mp3File mf = new Mp3File(s);
-
-      // If the mp3 is already stripped, do nothing
-      if (!mf.hasId3v1Tag() && !mf.hasId3v2Tag() && !mf.hasCustomTag()) return;
 
       // Strip tags if they exist
       if (mf.hasId3v1Tag()) mf.removeId3v1Tag();
@@ -468,12 +474,6 @@ public class SongPanel extends JPanel {
 
       // Save temp file
       mf.save(newFileName);
-
-      // Delete original and rename temp
-      final File originalMp3 = new File(s);
-      originalMp3.delete();
-      final File strippedMp3 = new File(newFileName);
-      strippedMp3.renameTo(originalMp3);
 
     }
     catch (UnsupportedTagException e) {
@@ -488,6 +488,8 @@ public class SongPanel extends JPanel {
     catch (NotSupportedException e) {
       e.printStackTrace();
     }
+
+    return newFileName;
   }
 
   private static final Point calcPoint3(final double x1, final double y1, final double x2, final double y2) {
