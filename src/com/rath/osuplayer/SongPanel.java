@@ -407,13 +407,13 @@ public class SongPanel extends JPanel {
 
       final double lpx = (i + 1) * specWidth;
       final double lpy = centerY + this.fft.getAvg(i + 1) * BAND_SCALE + 2;
-      final double lpy2 = centerY + (this.fft.getAvg(i + 1) * BAND_SCALE + 2) * FG_SPEC_MULT;
+      final double lpy2 = centerY + (this.fft.getAvg(i + 1) * BAND_SCALE + 4) * FG_SPEC_MULT;
       final double px = i * specWidth;
       final double py = centerY + this.fft.getAvg(i) * BAND_SCALE + 2;
-      final double py2 = centerY + (this.fft.getAvg(i) * BAND_SCALE + 2) * FG_SPEC_MULT;
+      final double py2 = centerY + (this.fft.getAvg(i) * BAND_SCALE + 4) * FG_SPEC_MULT;
       final double npx = (i - 1) * specWidth;
       final double npy = centerY + this.fft.getAvg(i - 1) * BAND_SCALE + 2;
-      final double npy2 = centerY + (this.fft.getAvg(i - 1) * BAND_SCALE + 2) * FG_SPEC_MULT;
+      final double npy2 = centerY + (this.fft.getAvg(i - 1) * BAND_SCALE + 4) * FG_SPEC_MULT;
       Point point3 = calcPoint3(lpx, lpy, px, py);
       Point point3b = calcPoint3(lpx, lpy2, px, py2);
       gpbg.lineTo(point3.getX(), point3.getY());
