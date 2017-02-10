@@ -44,9 +44,6 @@ public class SongPanel extends JPanel {
   /** Serial version UID. */
   private static final long serialVersionUID = 1L;
   
-  /** The minimum hertz required for a band. */
-  // private static final int MIN_BANDWIDTH = 200;
-  
   /** How many bands are in an octave. */
   private static final int NUM_BANDS = 256;
   
@@ -75,13 +72,13 @@ public class SongPanel extends JPanel {
   private int songRuntime;
   
   /** Width of this JPanel (fullscreen). */
-  private int width;
+  private final int width;
   
   /** Height of this JPanel (fullscreen). */
-  private int height;
+  private final int height;
   
   /** Reference to the parent JFrame (PlayerFrame). */
-  private PlayerFrame parent;
+  private final PlayerFrame parent;
   
   /** Font for drawing the title font. */
   private Font titleFont;
@@ -90,7 +87,7 @@ public class SongPanel extends JPanel {
   private Font labelFont;
   
   /** Timer for repainting the window. */
-  private Timer repaintTimer;
+  private final Timer repaintTimer;
   
   /**
    * Song metadata with the following indeces: 0: Beatmap directory 1: Background image filename 2: Audio filename 3:
@@ -143,12 +140,13 @@ public class SongPanel extends JPanel {
     
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
+    final String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
     stripMP3Tags(audioFileStr);
     this.audioPlayer = minim.loadFile(audioFileStr, 2048);
     this.aInput = minim.getLineIn(Minim.STEREO);
     
-    this.songRuntime = this.audioPlayer.length() / 100;
+    this.songRuntime = this.audioPlayer.length() / 1000;
+    System.out.println("Runtime: " + this.songRuntime);
     
     // Set up FFT calculations
     try {
@@ -170,10 +168,10 @@ public class SongPanel extends JPanel {
           this.height, Image.SCALE_SMOOTH));
       
       // Load and set up fonts
-      File fontFile = new File("res/fonts/JAPANSANS80.OTF");
+      final File fontFile = new File("res/fonts/JAPANSANS80.OTF");
       this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
       this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
-      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
     }
     
@@ -202,13 +200,13 @@ public class SongPanel extends JPanel {
   public String[] getNewMetadata() {
     
     // Find song directory
-    File songDir = new File("Songs/");
+    final File songDir = new File("Songs/");
     if (!songDir.exists() || !songDir.isDirectory()) {
       System.err.println("Songs directory not found!");
     }
     
     // Get beatmap folder list
-    String[] beatmapFolders = songDir.list(new FilenameFilter() {
+    final String[] beatmapFolders = songDir.list(new FilenameFilter() {
       
       @Override
       public boolean accept(File curr, String name) {
@@ -217,8 +215,8 @@ public class SongPanel extends JPanel {
     });
     
     // Choose random beatmap directory
-    Random rand = new Random();
-    String currentMapDir = "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
+    final Random rand = new Random();
+    final String currentMapDir = "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
     
     // Parse any .osu file for the background and audio file.
     return MapParser.parseBeatmap(currentMapDir);
@@ -320,13 +318,13 @@ public class SongPanel extends JPanel {
   @Override
   public void paintComponent(Graphics g) {
     
-    Graphics2D g2 = (Graphics2D) g;
+    final Graphics2D g2 = (Graphics2D) g;
     g2.drawImage(this.songBG, 0, 0, null);
     
     // Song title font calculations
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g2.setFont(this.titleFont);
-    String titleString = this.metadata[3];
+    final String titleString = this.metadata[3];
     int fx = this.optPanel.getWidth() + (this.width >> 5);
     int fy = this.height - this.optPanel.getHeight() - (this.height >> 5);
     
@@ -404,16 +402,30 @@ public class SongPanel extends JPanel {
    * @return the BufferedImage that was converted.
    */
   private BufferedImage convertImage(Image img) {
-    BufferedImage result = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+    final BufferedImage result = new BufferedImage(img.getWidth(null), img.getHeight(null),
+        BufferedImage.TYPE_INT_ARGB);
     result.getGraphics().drawImage(img, 0, 0, null);
     return result;
   }
   
+  /**
+   * Strips an .mp3 file of its tags (Minim doesn't like them).
+   * 
+   * @param s relative path to the .mp3 file as a String.
+   */
   private static final void stripMP3Tags(final String s) {
+    
     System.out.println("Stripping " + s);
     final String newFileName = s.substring(0, s.length() - 4) + "0.mp3";
     try {
+      
+      // Strip tags if they exist
       final Mp3File mf = new Mp3File(s);
+      
+      // If the mp3 is already stripped, do nothing
+      if (!mf.hasId3v1Tag() && !mf.hasId3v2Tag() && !mf.hasCustomTag()) return;
+      
+      // Strip tags if they exist
       if (mf.hasId3v1Tag()) mf.removeId3v1Tag();
       if (mf.hasId3v2Tag()) mf.removeId3v2Tag();
       if (mf.hasCustomTag()) mf.removeCustomTag();
@@ -421,22 +433,19 @@ public class SongPanel extends JPanel {
       // Save temp file
       mf.save(newFileName);
       
+      // Delete original and rename temp
       final File originalMp3 = new File(s);
       originalMp3.delete();
       final File strippedMp3 = new File(newFileName);
       strippedMp3.renameTo(originalMp3);
       
     } catch (UnsupportedTagException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      System.err.println("Unsupported tag!\n" + e.getMessage());
     } catch (InvalidDataException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      System.err.println("Mp3 file is corrupt!");
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (NotSupportedException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
