@@ -18,6 +18,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -45,6 +47,9 @@ public class SongPanel extends JPanel {
   /** Serial version UID. */
   private static final long serialVersionUID = 1L;
 
+  /** How many recently played songs to keep track of. */
+  private static final int QUEUE_THRESHOLD = 40; 
+  
   /** How many bands are in an octave. */
   private static final int NUM_BANDS = 256;
 
@@ -108,6 +113,9 @@ public class SongPanel extends JPanel {
   /** Handle to the last played audio file (tags stripped). */
   private File lastAudioFile;
 
+  /** A set of the most recently played songs. */
+  private Queue<String> recentlyPlayedSongs;
+
   /** Fast Fourier Transform object. */
   private FFT fft;
 
@@ -122,12 +130,16 @@ public class SongPanel extends JPanel {
   public SongPanel(PlayerFrame par, int w, int h) {
     super();
 
+    this.recentlyPlayedSongs = new ArrayDeque<String>();
+
     // Set class fields
     this.width = w;
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
     System.err.println(this.metadata[0] + "/" + this.metadata[2]);
+
+    this.recentlyPlayedSongs.add(this.metadata[2]);
 
     // Timer to update visualization
     this.repaintTimer = new Timer(0, new ActionListener() {
@@ -238,7 +250,18 @@ public class SongPanel extends JPanel {
 
     this.lastAudioFile.delete();
 
-    this.metadata = getNewMetadata();
+    while(true) {
+      this.metadata = getNewMetadata();
+      if(!this.recentlyPlayedSongs.contains(this.metadata[2])) {
+        break;
+      }
+    }
+    
+    this.recentlyPlayedSongs.add(metadata[2]);
+    if(this.recentlyPlayedSongs.size() > QUEUE_THRESHOLD) {
+      this.recentlyPlayedSongs.remove();
+    }
+    
     final String filePath = metadata[0] + "/";
     String audioFileStr = filePath + this.metadata[2];
     audioFileStr = stripMP3Tags(audioFileStr);
