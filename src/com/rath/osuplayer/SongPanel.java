@@ -123,6 +123,11 @@ public class SongPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent evt) {
         parent.repaint();
+        
+        // If the song is done, fetch a new one.
+        if (!audioPlayer.isPlaying()) {
+          newSong();
+        }
       }
       
     });
