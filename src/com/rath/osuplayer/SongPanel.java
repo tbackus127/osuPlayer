@@ -28,7 +28,6 @@ import ddf.minim.AudioPlayer;
 import ddf.minim.Minim;
 import ddf.minim.analysis.FFT;
 
-
 /**
  * The main graphics panel. Song backgrounds and info will be rendered here.
  * 
@@ -41,16 +40,16 @@ public class SongPanel extends JPanel {
   private static final long serialVersionUID = 1L;
   
   /** The minimum hertz required for a band. */
-  private static final int MIN_BANDWIDTH = 440;
+  // private static final int MIN_BANDWIDTH = 200;
   
   /** How many bands are in an octave. */
-  private static final int BANDS_PER_OCTAVE = 32;
+  private static final int NUM_BANDS = 256;
   
   /** Band vertical scaling. */
-  private static final int BAND_SCALE = 10;
+  private static final double BAND_SCALE = 10.0D;
   
   /** Visualization frames per second */
-  private static final int TARGET_FRAMERATE = 60;
+  private static final int TARGET_FRAMERATE = 120;
   
   /** Color for spectrum foreground. */
   private static final Color COLOR_SPEC_FG = new Color(96, 127, 255, 100);
@@ -123,7 +122,6 @@ public class SongPanel extends JPanel {
       
       @Override
       public void actionPerformed(ActionEvent evt) {
-        parent.revalidate();
         parent.repaint();
       }
       
@@ -132,17 +130,19 @@ public class SongPanel extends JPanel {
     
     // Set up minim
     this.minim = new Minim(new MinimHandler());
-    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 512);
+    this.audioPlayer = minim.loadFile(this.metadata[0] + "/" + this.metadata[2], 2048);
     this.aInput = minim.getLineIn(Minim.STEREO);
     
     // Set up FFT calculations
     try {
-      this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());      
+      this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
     } catch (NullPointerException npe) {
       System.err.println("Stereo Mix not enabled!");
       return;
     }
-    this.fft.logAverages(MIN_BANDWIDTH, BANDS_PER_OCTAVE);
+    
+    this.fft.linAverages(NUM_BANDS);
+    // this.fft.logAverages(MIN_BANDWIDTH, NUM_BANDS);
     
     // Set the background of this panel
     try {
@@ -370,7 +370,6 @@ public class SongPanel extends JPanel {
       g2.setColor(COLOR_SPEC_FG);
       g2.fill(bandSmooth);
       
-      
       final Polygon bandSmoothOverlay = new Polygon();
       bandSmoothOverlay.addPoint(xPointA, centerY - lastBandHeight / 2);
       bandSmoothOverlay.addPoint(xPointB, centerY - bandHeight / 2);
@@ -393,5 +392,16 @@ public class SongPanel extends JPanel {
     BufferedImage result = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
     result.getGraphics().drawImage(img, 0, 0, null);
     return result;
+  }
+  
+  /**
+   * Converts a band's value to decibels.
+   * 
+   * @param x the band value.
+   * @return a float.
+   */
+  private static final float getDecibels(final float x) {
+    if (x == 0) return 0;
+    return 10.0F * (float) Math.log10(x);
   }
 }
