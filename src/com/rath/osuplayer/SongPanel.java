@@ -63,6 +63,9 @@ public class SongPanel extends JPanel {
   /** Song metadata indentation amount. */
   private static final double SONG_INFO_INDENT_X = 0.03125D;
   
+  /** The relative vertical position of the info background. */
+  private static final double INFO_BG_X = 0.8D;
+  
   /** How many recently played songs to keep track of. */
   private static final int QUEUE_THRESHOLD = 40;
   
@@ -75,14 +78,20 @@ public class SongPanel extends JPanel {
   /** Band vertical scaling. */
   private static final double BAND_SCALE = 2.3D;
   
-  /** Visualization frames per second */
+  /** Visualization frames per second. */
   private static final int TARGET_FRAMERATE = 120;
+  
+  /** The opacity of the song info background. */
+  private static final int INFO_BG_OPACITY = 160;
   
   /** Color for spectrum foreground. */
   private static final Color COLOR_SPEC_BG = new Color(96, 127, 255, 120);
   
   /** Color for spectrum background. */
   private static final Color COLOR_SPEC_FG = new Color(255, 255, 255, 180);
+  
+  /** Color of the song info background. */
+  private static final Color COLOR_INFO_BG = new Color(0, 0, 0, INFO_BG_OPACITY);
   
   /** Multiplier for foreground spectrum size. */
   private static final double FG_SPEC_MULT = 0.5D;
@@ -408,6 +417,14 @@ public class SongPanel extends JPanel {
     if (this.songBG != null) {
       g2.drawImage(this.songBG, 0, 0, null);
     }
+    final int centerY = this.height >> 1;
+    
+    // TODO: Black gradient on bottom for easy info reading
+    final int infoBGStart = (int) (this.height * INFO_BG_X);
+    
+    // Draw song info background
+    g2.setColor(COLOR_INFO_BG);
+    g2.fillRect(0, infoBGStart, this.width, centerY >> 1);
     
     // Song title font calculations
     final String titleString = this.metadata[3];
@@ -457,7 +474,6 @@ public class SongPanel extends JPanel {
     }
     
     // Draw spectrum center line
-    final int centerY = this.height >> 1;
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     g2.drawLine(0, centerY, this.width, centerY);
     
