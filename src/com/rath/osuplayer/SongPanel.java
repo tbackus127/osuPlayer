@@ -44,14 +44,21 @@ import ddf.minim.analysis.FFT;
  */
 public class SongPanel extends JPanel {
   
-  /** Serial version UID. */
+  /**
+   * Enables debug mode (println()'s. println()'s everywhere).
+   */
+  private static final boolean DEBUG_MODE = true;
+  
+  /**
+   * Serial version UID.
+   */
   private static final long serialVersionUID = 1L;
   
   /** How many recently played songs to keep track of. */
   private static final int QUEUE_THRESHOLD = 40;
   
   /** How many times the system tries to pick a song that was not recently played before giving up. */
-  private static final int RECENT_SONG_THRESHOLD = 20;
+  private static final int RECENT_RETRY_THRESHOLD = 20;
   
   /** How many bands are in an octave. */
   private static final int NUM_BANDS = 256;
@@ -140,9 +147,10 @@ public class SongPanel extends JPanel {
     this.height = h;
     this.parent = par;
     this.metadata = getNewMetadata();
-    System.err.println(this.metadata[0] + "/" + this.metadata[2]);
     
+    // Add song to recently played queue
     this.recentlyPlayedSongs.add(this.metadata[3]);
+    debugOut("Added \"" + this.metadata[3] + "\" to recently played.");
     
     // Timer to update visualization
     this.repaintTimer = new Timer(0, new ActionListener() {
@@ -163,13 +171,16 @@ public class SongPanel extends JPanel {
     // Set up minim
     this.minim = new Minim(new MinimHandler());
     String audioFileStr = this.metadata[0] + "/" + this.metadata[2];
+    debugOut("Chose audio file: \"" + audioFileStr + "\".");
     audioFileStr = stripMP3Tags(audioFileStr);
+    debugOut("Loaded stripped audio file: \"" + audioFileStr + "\".");
     this.audioPlayer = minim.loadFile(audioFileStr, 2048);
     this.lastAudioFile = new File(audioFileStr);
     this.aInput = minim.getLineIn(Minim.STEREO);
     
+    // Get audio runtime
     this.songRuntime = this.audioPlayer.length() / 1000;
-    System.out.println("Runtime: " + this.songRuntime);
+    debugOut("Runtime: " + this.songRuntime);
     
     // Set up FFT calculations
     try {
@@ -182,7 +193,6 @@ public class SongPanel extends JPanel {
     
     // Set the background of this panel
     try {
-      
       this.songBG = convertImage(ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
       
@@ -192,10 +202,8 @@ public class SongPanel extends JPanel {
       this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
       final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
-    }
-    
-    // Exception handling
-    catch (IOException e) {
+      
+    } catch (IOException e) {
       e.printStackTrace();
     } catch (FontFormatException ffe) {
       ffe.printStackTrace();
@@ -217,6 +225,8 @@ public class SongPanel extends JPanel {
    */
   public String[] getNewMetadata() {
     
+    debugOut("Fetching new metadata.");
+    
     // Find song directory
     final File songDir = new File("Songs/");
     if (!songDir.exists() || !songDir.isDirectory()) {
@@ -236,9 +246,10 @@ public class SongPanel extends JPanel {
     final Random rand = new Random();
     final String currentMapDir = "Songs/" + beatmapFolders[rand.nextInt(beatmapFolders.length)];
     
+    debugOut("Chose \"" + currentMapDir + "\" as next song.");
+    
     // Parse any .osu file for the background and audio file.
     return MapParser.parseBeatmap(currentMapDir);
-    
   }
   
   /**
@@ -246,40 +257,49 @@ public class SongPanel extends JPanel {
    */
   public void newSong() {
     
+    // Stop updating and playing
     this.repaintTimer.stop();
     this.audioPlayer.close();
     
     // Delete copied and stripped mp3
     this.lastAudioFile.delete();
     
-    System.out.println(this.recentlyPlayedSongs);
+    debugOut("Recently played songs queue:");
+    debugOut(this.recentlyPlayedSongs.toString());
     
     // Try to play new songs that haven't played in a while
     int recentSongCount = 0;
-    while (recentSongCount <= RECENT_SONG_THRESHOLD) {
+    while (recentSongCount <= RECENT_RETRY_THRESHOLD) {
       this.metadata = getNewMetadata();
       if (!this.recentlyPlayedSongs.contains(this.metadata[3])) {
         break;
       }
+      debugOut("Chose recently played song. Retrying " + (RECENT_RETRY_THRESHOLD - recentSongCount) + " more times.");
       recentSongCount++;
     }
     
+    // Add song to recently played
     this.recentlyPlayedSongs.add(metadata[3]);
     if (this.recentlyPlayedSongs.size() > QUEUE_THRESHOLD) {
+      debugOut("Recently played queue reached size threshold. Removing oldest song.");
       this.recentlyPlayedSongs.remove();
     }
     
+    // Load new audio file
     final String filePath = metadata[0] + "/";
     String audioFileStr = filePath + this.metadata[2];
     audioFileStr = stripMP3Tags(audioFileStr);
+    debugOut("Loading audio \"" + audioFileStr + "\".");
     this.audioPlayer = minim.loadFile(audioFileStr);
     this.lastAudioFile = new File(audioFileStr);
     
+    // Get and scale new background image
     try {
       this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
     } catch (IOException e) {
       System.err.println("IOE@" + filePath + metadata[1]);
+      this.songBG = new BufferedImage(this.width, this.height, BufferedImage.TYPE_BYTE_BINARY);
     } catch (NullPointerException npe) {
       System.err.println("NPE@" + filePath + metadata[1]);
     }
@@ -360,9 +380,13 @@ public class SongPanel extends JPanel {
   public void paintComponent(Graphics g) {
     
     final Graphics2D g2 = (Graphics2D) g;
-    g2.drawImage(this.songBG, 0, 0, null);
+    
+    if (this.songBG != null) {
+      g2.drawImage(this.songBG, 0, 0, null);
+    }
     
     // Song title font calculations
+    // TODO: Make text smaller for longer titles
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g2.setFont(this.titleFont);
     final String titleString = this.metadata[3];
@@ -549,5 +573,14 @@ public class SongPanel extends JPanel {
     final double dx = (x1 - x2) * per;
     final double dy = (y1 - y2) * per;
     return new Point((int) (x2 + dx), (int) (y2 + dy));
+  }
+  
+  /**
+   * Prints a message only if DEBUG_MODE is true.
+   * 
+   * @param msg the String to print to sysout.
+   */
+  private static final void debugOut(final String msg) {
+    if (DEBUG_MODE) System.out.println(msg);
   }
 }
