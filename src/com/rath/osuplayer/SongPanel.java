@@ -47,12 +47,21 @@ public class SongPanel extends JPanel {
   /**
    * Enables debug mode (println()'s. println()'s everywhere).
    */
-  private static final boolean DEBUG_MODE = true;
+  private static final boolean DEBUG_MODE = false;
   
   /**
    * Serial version UID.
    */
   private static final long serialVersionUID = 1L;
+  
+  /** The amount of padding info drawn should have. */
+  private static final int PLAYER_PADDING = 16;
+  
+  /** The amount of spacing relative to window height between lines of a song's information. */
+  private static final double SONG_INFO_SPACING_Y = 0.05D;
+  
+  /** Song metadata indentation amount. */
+  private static final double SONG_INFO_INDENT_X = 0.03125D;
   
   /** How many recently played songs to keep track of. */
   private static final int QUEUE_THRESHOLD = 40;
@@ -77,6 +86,21 @@ public class SongPanel extends JPanel {
   
   /** Multiplier for foreground spectrum size. */
   private static final double FG_SPEC_MULT = 0.5D;
+  
+  /** Default song title font size. */
+  private static final float DEFAULT_TITLE_FONT_SIZE = 64.0F;
+  
+  /** Default song metadata font size. */
+  private static final float DEFAULT_LABEL_FONT_SIZE = 28.0F;
+  
+  /** Horizontal offset in pixels for font shadow. */
+  private static final int FONT_SHADOW_OFFSET_X = 2;
+  
+  /** Vertical offset in pixels for font shadow. */
+  private static final int FONT_SHADOW_OFFSET_Y = 2;
+  
+  /** Path to the default font. */
+  private static final String DEFAULT_FONT_STRING = "res/fonts/JAPANSANS80.OTF";
   
   /** The song background from the beatmap folder. */
   private BufferedImage songBG;
@@ -197,9 +221,9 @@ public class SongPanel extends JPanel {
           this.height, Image.SCALE_SMOOTH));
       
       // Load and set up fonts
-      final File fontFile = new File("res/fonts/JAPANSANS80.OTF");
-      this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(64f);
-      this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(36f);
+      final File fontFile = new File(DEFAULT_FONT_STRING);
+      this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(DEFAULT_TITLE_FONT_SIZE);
+      this.labelFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(DEFAULT_LABEL_FONT_SIZE);
       final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
       
@@ -386,41 +410,50 @@ public class SongPanel extends JPanel {
     }
     
     // Song title font calculations
-    // TODO: Make text smaller for longer titles
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setFont(this.titleFont);
     final String titleString = this.metadata[3];
-    int fx = this.optPanel.getWidth() + (this.width >> 5);
-    int fy = this.height - this.optPanel.getHeight() - (this.height >> 5);
+    int fontx = this.optPanel.getWidth();
+    int fonty = this.height - this.optPanel.getHeight() - PLAYER_PADDING;
+    
+    g2.setFont(this.titleFont);
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    final double fntWidth = g2.getFontMetrics(this.titleFont).stringWidth(titleString);
+    
+    // Scale font if the song title is too long.
+    final double maxFontWidth = this.width - fontx - PLAYER_PADDING;
+    if (fntWidth > maxFontWidth) {
+      final float fntSize = (float) (((maxFontWidth) / fntWidth) * this.titleFont.getSize());
+      final Font tFont = this.titleFont.deriveFont(fntSize);
+      g2.setFont(tFont);
+    }
     
     // Draw shadow
     g2.setColor(Color.BLACK);
-    g2.drawString(titleString, fx + 2, fy + 2);
+    g2.drawString(titleString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
     
     // Draw title
     g2.setColor(Color.WHITE);
-    g2.drawString(titleString, fx, fy);
+    g2.drawString(titleString, fontx, fonty);
     
     // Artist font calculations
     g2.setFont(this.labelFont);
     String artistString = "Artist: " + this.metadata[4];
-    fx += (this.width >> 5);
-    fy += (this.height / 20);
+    fontx += (this.width * SONG_INFO_INDENT_X);
+    fonty += (this.height * SONG_INFO_SPACING_Y);
     
     // Draw Shadow and artist name
     g2.setColor(Color.BLACK);
-    g2.drawString(artistString, fx + 2, fy + 2);
+    g2.drawString(artistString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
     g2.setColor(Color.WHITE);
-    g2.drawString(artistString, fx, fy);
+    g2.drawString(artistString, fontx, fonty);
     
     // Calculate and draw source name
     if (this.metadata[5].length() > 0) {
       String sourceString = "Source: " + this.metadata[5];
-      fy += (this.height / 20);
+      fonty += (this.height * SONG_INFO_SPACING_Y);
       g2.setColor(Color.BLACK);
-      g2.drawString(sourceString, fx + 2, fy + 2);
+      g2.drawString(sourceString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
       g2.setColor(Color.WHITE);
-      g2.drawString(sourceString, fx, fy);
+      g2.drawString(sourceString, fontx, fonty);
     }
     
     // Draw spectrum center line
