@@ -81,6 +81,9 @@ public class SongPanel extends JPanel {
   /** Progress bar length. */
   private static final double PROGRESS_LEN = 0.1D;
 
+  /** The height of the progress bar inducator line. */
+  private static final int PROG_LINE_HEIGHT = 12;
+
   /** How many recently played songs to keep track of. */
   private static final int QUEUE_THRESHOLD = 40;
 
@@ -502,7 +505,11 @@ public class SongPanel extends JPanel {
     // TODO: Draw progress bar
     final int progBarPosX = (int) (PROGRESS_X * this.width);
     final int progBarPosY = timePosY - (timeStrHeight >> 1);
-    g2.drawLine(progBarPosX, progBarPosY, (int) (progBarPosX + (PROGRESS_LEN * this.width)), progBarPosY);
+    final double progBarLen = PROGRESS_LEN * this.width;
+    g2.drawLine(progBarPosX, progBarPosY, (int) (progBarPosX + progBarLen), progBarPosY);
+    final int progBarLinePos = (int) (progBarPosX
+        + (progBarLen * ((double) this.songRuntime / (double) this.audioPlayer.position())));
+    g2.drawLine(progBarLinePos, progBarPosY - PROG_LINE_HEIGHT, progBarLinePos, progBarPosY + PROG_LINE_HEIGHT);
 
     // Draw spectrum center line
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
