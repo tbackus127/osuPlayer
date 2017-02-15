@@ -502,7 +502,7 @@ public class SongPanel extends JPanel {
     final int timeStrHeight = (int) this.labelFont.getLineMetrics(timeStr, g2.getFontRenderContext()).getHeight();
     g2.drawString(timeStr, timePosX, timePosY - 2);
 
-    // TODO: Draw progress bar
+    // Draw progress bar
     final int progBarPosX = (int) (PROGRESS_X * this.width);
     final int progBarPosY = timePosY - (timeStrHeight >> 1);
     final double progBarLen = PROGRESS_LEN * this.width;
@@ -511,9 +511,7 @@ public class SongPanel extends JPanel {
     // Progress indicator line
     final int progBarLinePos = (int) (((double) this.audioPlayer.position() / (double) this.audioPlayer.length())
         * progBarLen) + progBarPosX;
-
     g2.drawLine(progBarLinePos, progBarPosY - PROG_LINE_HEIGHT, progBarLinePos, progBarPosY + PROG_LINE_HEIGHT);
-    System.out.println(progBarLinePos);
 
     // Draw spectrum center line
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
