@@ -507,9 +507,13 @@ public class SongPanel extends JPanel {
     final int progBarPosY = timePosY - (timeStrHeight >> 1);
     final double progBarLen = PROGRESS_LEN * this.width;
     g2.drawLine(progBarPosX, progBarPosY, (int) (progBarPosX + progBarLen), progBarPosY);
-    final int progBarLinePos = (int) (progBarPosX
-        + (progBarLen * ((double) this.songRuntime / (double) this.audioPlayer.position())));
+
+    // Progress indicator line
+    final int progBarLinePos = (int) (((double) this.audioPlayer.position() / (double) this.audioPlayer.length())
+        * progBarLen) + progBarPosX;
+
     g2.drawLine(progBarLinePos, progBarPosY - PROG_LINE_HEIGHT, progBarLinePos, progBarPosY + PROG_LINE_HEIGHT);
+    System.out.println(progBarLinePos);
 
     // Draw spectrum center line
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
