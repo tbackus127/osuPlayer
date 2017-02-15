@@ -132,8 +132,11 @@ public class SongPanel extends JPanel {
   /** The song background from the beatmap folder. */
   private BufferedImage songBG;
 
-  /** Reference to the child panel (OptionsPanel). */
+  /** Reference to the control panel. */
   private OptionsPanel optPanel;
+
+  /** Reference to the filter panel. */
+  private SongFilterPanel searchPanel;
 
   /** The audio player. */
   private AudioPlayer audioPlayer;
@@ -266,6 +269,10 @@ public class SongPanel extends JPanel {
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);
     par.add(this.optPanel);
+
+    // Create and add the filter panel
+    this.searchPanel = new SongFilterPanel(this);
+    par.add(this.searchPanel);
 
     // Start everything
     this.repaintTimer.start();
@@ -668,6 +675,12 @@ public class SongPanel extends JPanel {
     return new Point((int) (x2 + dx), (int) (y2 + dy));
   }
 
+  /**
+   * Gets a timestamp from a time in milliseconds.
+   * 
+   * @param t the time, in milliseconds.
+   * @return a String of the format "M:SS".
+   */
   private static final String getPlaytimeString(final int t) {
     final int mins = t / 60;
     final int secs = t % 60;

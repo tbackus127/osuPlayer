@@ -59,7 +59,7 @@ public class OptionsPanel extends JPanel {
    * 
    * @param par the parent JPanel (SongPanel)
    */
-  public OptionsPanel(SongPanel par) {
+  public OptionsPanel(final SongPanel par) {
     super();
     this.parent = par;
 
@@ -188,6 +188,9 @@ public class OptionsPanel extends JPanel {
 
   }
 
+  /**
+   * Closes everything.
+   */
   public void closeEverything() {
     this.parent.closeEverything();
   }
@@ -199,7 +202,6 @@ public class OptionsPanel extends JPanel {
    */
   @Override
   public Dimension getPreferredSize() {
-    System.err.println("OptPanel: w=" + this.width + ", h=" + this.height);
     return new Dimension(this.width, this.height);
   }
 
