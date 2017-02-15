@@ -497,10 +497,10 @@ public class SongPanel extends JPanel {
 
     // Draw playtime of current song
     final int timePosX = (int) (PLAYTIME_X * this.width);
-    final int timePosY = (int) (PLAYTIME_Y * this.height);
+    final int timePosY = (int) (PLAYTIME_Y * this.height) + 2;
     final String timeStr = getPlaytimeString(this.audioPlayer.position() / 1000);
     final int timeStrHeight = (int) this.labelFont.getLineMetrics(timeStr, g2.getFontRenderContext()).getHeight();
-    g2.drawString(timeStr, timePosX, timePosY);
+    g2.drawString(timeStr, timePosX, timePosY - 2);
 
     // TODO: Draw progress bar
     final int progBarPosX = (int) (PROGRESS_X * this.width);
