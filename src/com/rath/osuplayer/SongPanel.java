@@ -84,6 +84,9 @@ public class SongPanel extends JPanel {
   /** The height of the progress bar inducator line. */
   private static final int PROG_LINE_HEIGHT = 12;
 
+  /** Filter panel's length. */
+  private static final int FILTER_PANEL_HEIGHT = 80;
+
   /** How many recently played songs to keep track of. */
   private static final int QUEUE_THRESHOLD = 40;
 
@@ -273,6 +276,8 @@ public class SongPanel extends JPanel {
     // Create and add the filter panel
     this.searchPanel = new SongFilterPanel(this);
     par.add(this.searchPanel);
+    this.searchPanel.setBounds(this.width >> 1, 0, this.width >> 1, FILTER_PANEL_HEIGHT);
+    
 
     // Start everything
     this.repaintTimer.start();
@@ -284,7 +289,7 @@ public class SongPanel extends JPanel {
    * 
    * @return a String[] with indeces: {directory, BG-image, audio file, title, artist, source}
    */
-  public String[] getNewMetadata() {
+  public final String[] getNewMetadata() {
 
     debugOut("Fetching new metadata.");
 
@@ -316,7 +321,7 @@ public class SongPanel extends JPanel {
   /**
    * Fetches a new song and updates the panel.
    */
-  public void newSong() {
+  public final void newSong() {
 
     // Stop updating and playing
     this.repaintTimer.stop();
@@ -376,7 +381,7 @@ public class SongPanel extends JPanel {
   /**
    * Switches the current audio state from playing to paused, and vice-versa.
    */
-  public void togglePause() {
+  public final void togglePause() {
     if (this.audioPlayer.isPlaying()) {
       this.repaintTimer.stop();
       this.audioPlayer.pause();
@@ -393,14 +398,14 @@ public class SongPanel extends JPanel {
    * 
    * @return true if audio is paused; false otherwise.
    */
-  public boolean isPaused() {
+  public final boolean isPaused() {
     return !this.audioPlayer.isPlaying();
   }
 
   /**
    * Calls the main JFrame's closeEverything() method
    */
-  public void closeEverything() {
+  public final void closeEverything() {
     this.audioPlayer.close();
     this.minim.stop();
     this.minim.dispose();
@@ -458,7 +463,7 @@ public class SongPanel extends JPanel {
    * 
    * @param g2 Graphics2D object.
    */
-  private void drawBackground(final Graphics2D g2) {
+  private final void drawBackground(final Graphics2D g2) {
     if (this.songBG != null) {
       g2.drawImage(this.songBG, 0, 0, null);
     }
@@ -470,7 +475,7 @@ public class SongPanel extends JPanel {
    * @param g2 Graphics2D object.
    * @param centerY half of the window height.
    */
-  private void drawSongInfo(final Graphics2D g2, final int centerY) {
+  private final void drawSongInfo(final Graphics2D g2, final int centerY) {
     final int infoBGStart = (int) (this.height * INFO_BG_Y);
 
     // Draw song info background
@@ -524,6 +529,16 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, fontx, fonty);
     }
 
+    drawProgressBar(g2);
+  }
+
+  /**
+   * Draw the player's progress bar and playtime.
+   * 
+   * @param g2 the Graphics2D object.
+   */
+  private final void drawProgressBar(final Graphics2D g2) {
+
     // Draw playtime of current song
     final int timePosX = (int) (PLAYTIME_X * this.width);
     final int timePosY = (int) (PLAYTIME_Y * this.height) + 2;
@@ -541,7 +556,6 @@ public class SongPanel extends JPanel {
     final int progBarLinePos = (int) (((double) this.audioPlayer.position() / (double) this.audioPlayer.length())
         * progBarLen) + progBarPosX;
     g2.drawLine(progBarLinePos, progBarPosY - PROG_LINE_HEIGHT, progBarLinePos, progBarPosY + PROG_LINE_HEIGHT);
-
   }
 
   /**
@@ -550,7 +564,8 @@ public class SongPanel extends JPanel {
    * @param g2 Graphics2D object.
    * @param centerY half the screen's height.
    */
-  private void drawFFT(final Graphics2D g2, final int centerY) {
+  private final void drawFFT(final Graphics2D g2, final int centerY) {
+
     // Draw spectrum center line
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     g2.drawLine(0, centerY, this.width, centerY);
@@ -637,7 +652,7 @@ public class SongPanel extends JPanel {
    * @param img the Image to convert to a BufferedImage.
    * @return the BufferedImage that was converted.
    */
-  private BufferedImage convertImage(Image img) {
+  private static final BufferedImage convertImage(final Image img) {
     final BufferedImage result = new BufferedImage(img.getWidth(null), img.getHeight(null),
         BufferedImage.TYPE_INT_ARGB);
     result.getGraphics().drawImage(img, 0, 0, null);
@@ -652,6 +667,7 @@ public class SongPanel extends JPanel {
   private static final String stripMP3Tags(final String s) {
 
     final String newFileName = s.substring(0, s.length() - 4) + "0.mp3";
+
     try {
 
       // Strip tags if they exist

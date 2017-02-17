@@ -4,8 +4,17 @@ package com.rath.osuplayer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.Image;
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -26,8 +35,29 @@ public class SongFilterPanel extends JPanel {
   /** The default text that is shown in the search field. */
   private static final String DEFAULT_FIELD_TEXT = "Search for a song...";
 
+  /** The height of the text field. */
+  private static final int FIELD_HEIGHT = 48;
+
+  /** Width of the magnifying glass icon. */
+  private static final int MAG_WIDTH = 80;
+
+  /** The location and filename of the font. */
+  private static final String SEARCH_FONT_STRING = "res/fonts/JAPANSANS80.otf";
+
+  /** Search font color. */
+  private static final Color SEARCH_FONT_COLOR = new Color(220, 220, 220, 255);
+
+  /** The size of the search font. */
+  private static final float SEARCH_FONT_SIZE = 32F;
+
   /** Reference to the parent panel. */
   private final SongPanel parent;
+
+  /** The magnifying glass icon. */
+  private Image magImg;
+
+  /** The search field font. */
+  private Font searchFont;
 
   /** The search text field. */
   private final JTextField searchField;
@@ -48,21 +78,50 @@ public class SongFilterPanel extends JPanel {
 
     this.parent = sp;
 
-    this.searchField = new JTextField();
-    this.searchField.setText(DEFAULT_FIELD_TEXT);
+    try {
+      this.magImg = ImageIO.read(new File("res/img/mag.png"));
+      final File fontFile = new File(SEARCH_FONT_STRING);
+      this.searchFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(SEARCH_FONT_SIZE);
+    }
+    catch (IOException e) {
+      System.err.println("Cannot read mag.png.");
+    }
+    catch (FontFormatException e) {
+      e.printStackTrace();
+    }
 
     // Calculation variables
     final Dimension pdim = this.parent.getPreferredSize();
     final int pw = pdim.width;
     final int ph = pdim.height;
-    this.width = (pw >> 1);
+    this.width = (pw >> 1) - MAG_WIDTH;
     this.height = (ph >> 4);
 
     // Set size and transparency
-    setBounds(new Rectangle(0, ph - this.height, this.width, this.height));
+    setBounds(new Rectangle(0, ph - this.height, this.width - MAG_WIDTH, this.height));
     setOpaque(false);
     setBackground(new Color(0, 0, 0, 0));
     setLayout(new FlowLayout());
+
+    // Draw magnifying glass
+    if (this.magImg != null) {
+      final JLabel imgLbl = new JLabel(new ImageIcon(this.magImg));
+      add(imgLbl);
+    }
+
+    // Create search field
+    this.searchField = new JTextField();
+
+    if (this.searchFont != null) {
+      this.searchField.setFont(this.searchFont);
+    }
+
+    this.searchField.setForeground(SEARCH_FONT_COLOR);
+    this.searchField.setText(DEFAULT_FIELD_TEXT);
+    this.searchField.setOpaque(false);
+    this.searchField.setPreferredSize(new Dimension(((int) pdim.getWidth() >> 1) - MAG_WIDTH, FIELD_HEIGHT));
+    this.searchField.setBorder(BorderFactory.createEmptyBorder());
+    add(this.searchField);
 
     add(this.searchField);
   }
