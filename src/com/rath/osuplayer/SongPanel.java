@@ -58,7 +58,7 @@ public class SongPanel extends JPanel {
   private static final int PLAYER_PADDING = 16;
 
   /** The amount of spacing relative to window height between lines of a song's information. */
-  private static final double SONG_INFO_SPACING_Y = 0.05D;
+  private static final double SONG_INFO_SPACING_Y = 0.054D;
 
   /** Song metadata indentation amount. */
   private static final double SONG_INFO_INDENT_X = 0.03125D;
@@ -443,12 +443,34 @@ public class SongPanel extends JPanel {
   public void paintComponent(Graphics g) {
 
     final Graphics2D g2 = (Graphics2D) g;
+    drawBackground(g2);
 
+    final int centerY = this.height >> 1;
+    drawSongInfo(g2, centerY);
+
+    if (!this.audioPlayer.isPlaying()) return;
+
+    drawFFT(g2, centerY);
+  }
+
+  /**
+   * Draws the background image.
+   * 
+   * @param g2 Graphics2D object.
+   */
+  private void drawBackground(final Graphics2D g2) {
     if (this.songBG != null) {
       g2.drawImage(this.songBG, 0, 0, null);
     }
-    final int centerY = this.height >> 1;
+  }
 
+  /**
+   * Draws the song info panel.
+   * 
+   * @param g2 Graphics2D object.
+   * @param centerY half of the window height.
+   */
+  private void drawSongInfo(final Graphics2D g2, final int centerY) {
     final int infoBGStart = (int) (this.height * INFO_BG_Y);
 
     // Draw song info background
@@ -520,15 +542,18 @@ public class SongPanel extends JPanel {
         * progBarLen) + progBarPosX;
     g2.drawLine(progBarLinePos, progBarPosY - PROG_LINE_HEIGHT, progBarLinePos, progBarPosY + PROG_LINE_HEIGHT);
 
+  }
+
+  /**
+   * Draws the spectrum visualization.
+   * 
+   * @param g2 Graphics2D object.
+   * @param centerY half the screen's height.
+   */
+  private void drawFFT(final Graphics2D g2, final int centerY) {
     // Draw spectrum center line
     final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     g2.drawLine(0, centerY, this.width, centerY);
-
-    if (!this.audioPlayer.isPlaying()) return;
-
-    /*
-     * Begin FFT visualization
-     */
 
     // Get FFT data
     this.fft.forward(this.aInput.mix);
