@@ -13,6 +13,8 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -277,7 +279,11 @@ public class SongPanel extends JPanel {
     this.searchPanel = new SongFilterPanel(this);
     par.add(this.searchPanel);
     this.searchPanel.setBounds(this.width >> 1, 0, this.width >> 1, FILTER_PANEL_HEIGHT);
-    
+
+    // Player key listener
+    addKeyListener(new PlayerKeyListener(this.audioPlayer));
+    setFocusable(true);
+    requestFocus();
 
     // Start everything
     this.repaintTimer.start();
@@ -567,7 +573,7 @@ public class SongPanel extends JPanel {
   private final void drawFFT(final Graphics2D g2, final int centerY) {
 
     // Draw spectrum center line
-    final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
+    g2.setColor(COLOR_SPEC_BG);
     g2.drawLine(0, centerY, this.width, centerY);
 
     // Get FFT data
@@ -578,6 +584,7 @@ public class SongPanel extends JPanel {
     final GeneralPath gpfg = new GeneralPath();
 
     // Move paths to the leftmost point of the spectrum
+    final double specWidth = (double) ((float) this.width / (this.fft.getBandWidth() * 4.0));
     gpbg.moveTo(0, centerY);
     gpfg.moveTo(0, centerY);
     for (int i = 2; i < this.fft.avgSize() - 1; i++) {
@@ -640,7 +647,6 @@ public class SongPanel extends JPanel {
 
     // Fill polygons with BG and FG colors
     gpbg.lineTo(0, centerY);
-    g2.setColor(COLOR_SPEC_BG);
     g2.fill(gpbg);
     g2.setColor(COLOR_SPEC_FG);
     g2.fill(gpfg);

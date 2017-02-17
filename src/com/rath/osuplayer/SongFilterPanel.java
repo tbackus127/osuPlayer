@@ -8,6 +8,8 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -68,6 +70,9 @@ public class SongFilterPanel extends JPanel {
   /** The height of this panel. */
   private final int height;
 
+  /** Whether or not the search field has been changed. */
+  private boolean searchFieldChanged = false;
+
   /**
    * Default constructor.
    * 
@@ -99,8 +104,7 @@ public class SongFilterPanel extends JPanel {
 
     // Set size and transparency
     setBounds(new Rectangle(0, ph - this.height, this.width - MAG_WIDTH, this.height));
-    setOpaque(false);
-    setBackground(new Color(0, 0, 0, 0));
+    setBackground(new Color(0, 0, 0, 160));
     setLayout(new FlowLayout());
 
     // Draw magnifying glass
@@ -112,6 +116,27 @@ public class SongFilterPanel extends JPanel {
     // Create search field
     this.searchField = new JTextField();
 
+    this.searchField.addKeyListener(new KeyListener() {
+
+      @Override
+      public void keyPressed(KeyEvent arg0) {}
+
+      @Override
+      public void keyReleased(KeyEvent arg0) {}
+
+      @Override
+      public void keyTyped(KeyEvent arg0) {
+
+        if (!searchFieldChanged) {
+          searchFieldChanged = true;
+          searchField.setText("");
+        }
+
+        // TODO: Search library
+      }
+
+    });
+
     if (this.searchFont != null) {
       this.searchField.setFont(this.searchFont);
     }
@@ -121,8 +146,6 @@ public class SongFilterPanel extends JPanel {
     this.searchField.setOpaque(false);
     this.searchField.setPreferredSize(new Dimension(((int) pdim.getWidth() >> 1) - MAG_WIDTH, FIELD_HEIGHT));
     this.searchField.setBorder(BorderFactory.createEmptyBorder());
-    add(this.searchField);
-
     add(this.searchField);
   }
 
