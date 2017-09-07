@@ -13,8 +13,6 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -42,7 +40,6 @@ import ddf.minim.analysis.FFT;
  * The main graphics panel. Song backgrounds and info will be rendered here.
  * 
  * @author Administrator
- * 
  */
 public class SongPanel extends JPanel {
 
@@ -99,13 +96,10 @@ public class SongPanel extends JPanel {
   private static final int NUM_BANDS = 256;
 
   /** Band vertical scaling. */
-  private static final double BAND_SCALE = 2.3D;
+  private static final double BAND_SCALE = 2.5D;
 
   /** Visualization frames per second. */
   private static final int TARGET_FRAMERATE = 120;
-
-  /** The opacity of the song info background. */
-  private static final int INFO_BG_OPACITY = 160;
 
   /** Color for spectrum foreground. */
   private static final Color COLOR_SPEC_BG = new Color(96, 127, 255, 120);
@@ -113,29 +107,55 @@ public class SongPanel extends JPanel {
   /** Color for spectrum background. */
   private static final Color COLOR_SPEC_FG = new Color(255, 255, 255, 180);
 
-  /** Color of the song info background. */
-  private static final Color COLOR_INFO_BG = new Color(0, 0, 0, INFO_BG_OPACITY);
-
   /** Multiplier for foreground spectrum size. */
   private static final double FG_SPEC_MULT = 0.5D;
 
   /** Default song title font size. */
-  private static final float DEFAULT_TITLE_FONT_SIZE = 64.0F;
+  private static final float DEFAULT_TITLE_FONT_SIZE = 36.0F;
 
   /** Default song metadata font size. */
-  private static final float DEFAULT_LABEL_FONT_SIZE = 28.0F;
+  private static final float DEFAULT_LABEL_FONT_SIZE = 20.0F;
 
-  /** Horizontal offset in pixels for font shadow. */
-  private static final int FONT_SHADOW_OFFSET_X = 2;
-
-  /** Vertical offset in pixels for font shadow. */
-  private static final int FONT_SHADOW_OFFSET_Y = 2;
+  /** Recently played songs filename. */
+  private static final String RECENT_LIST_FILENAME = "osuplayer-recent.dat";
 
   /** Path to the default font. */
   private static final String DEFAULT_FONT_STRING = "res/fonts/JAPANSANS80.OTF";
 
+  /** Left song info border filepath. */
+  private static final String SONGINFO_BG_L = "res/img/info-border-left.png";
+
+  /** Right song info border filepath. */
+  private static final String SONGINFO_BG_R = "res/img/info-border-right.png";
+
+  /** Song info border filepath (scalable). */
+  private static final String SONGINFO_BG = "res/img/info-border-center.png";
+
+  /** Width of the song info borders. */
+  private static final int SONGINFO_W = 61;
+
+  /** Height of the song info borders. */
+  private static final int SONGINFO_H = 122;
+
+  // --------------------------------------------------------------------------
+
+  /** Recent songs list file handle. */
+  private File recentListFile;
+
   /** The song background from the beatmap folder. */
   private BufferedImage songBG;
+
+  /** The song info background left border. */
+  private BufferedImage infoBGL;
+
+  /** The song info background right border. */
+  private BufferedImage infoBGR;
+
+  /** The song info background. */
+  private BufferedImage infoBGC;
+
+  /** Scaled instance of the info background. */
+  private BufferedImage infoBGScaled;
 
   /** Reference to the control panel. */
   private OptionsPanel optPanel;
@@ -172,6 +192,12 @@ public class SongPanel extends JPanel {
    * Song title 4: Song artist 5: Song source
    */
   private String[] metadata;
+
+  /** The title of the currently playing song. */
+  private String songTitle;
+
+  /** The width of the rendered title in pixels. */
+  private int titleWidth;
 
   /** The Minim library object. */
   private final Minim minim;
@@ -216,6 +242,7 @@ public class SongPanel extends JPanel {
 
       @Override
       public void actionPerformed(ActionEvent evt) {
+
         parent.repaint();
 
         // If the song is done, fetch a new one.
@@ -244,8 +271,7 @@ public class SongPanel extends JPanel {
     // Set up FFT calculations
     try {
       this.fft = new FFT(this.aInput.bufferSize(), this.aInput.sampleRate());
-    }
-    catch (NullPointerException npe) {
+    } catch (NullPointerException npe) {
       System.err.println("Stereo Mix not enabled!");
       return;
     }
@@ -256,6 +282,11 @@ public class SongPanel extends JPanel {
       this.songBG = convertImage(ImageIO.read(new File(metadata[0] + "/" + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
 
+      // Song info background
+      this.infoBGC = ImageIO.read(new File(SONGINFO_BG));
+      this.infoBGL = ImageIO.read(new File(SONGINFO_BG_L));
+      this.infoBGR = ImageIO.read(new File(SONGINFO_BG_R));
+
       // Load and set up fonts
       final File fontFile = new File(DEFAULT_FONT_STRING);
       this.titleFont = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(DEFAULT_TITLE_FONT_SIZE);
@@ -263,21 +294,22 @@ public class SongPanel extends JPanel {
       final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, fontFile));
 
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
-    }
-    catch (FontFormatException ffe) {
+    } catch (FontFormatException ffe) {
       ffe.printStackTrace();
     }
 
+    // Calculate title string width
+    this.songTitle = this.metadata[3];
+    
     // Create and add the options panel
     this.optPanel = new OptionsPanel(this);
     par.add(this.optPanel);
 
     // Create and add the filter panel
     this.searchPanel = new SongFilterPanel(this);
-    par.add(this.searchPanel);
+    //    par.add(this.searchPanel);
     this.searchPanel.setBounds(this.width >> 1, 0, this.width >> 1, FILTER_PANEL_HEIGHT);
 
     // Player key listener
@@ -310,6 +342,7 @@ public class SongPanel extends JPanel {
 
       @Override
       public boolean accept(File curr, String name) {
+
         return new File(curr, name).isDirectory();
       }
     });
@@ -321,7 +354,7 @@ public class SongPanel extends JPanel {
     debugOut("Chose \"" + currentMapDir + "\" as next song.");
 
     // Parse any .osu file for the background and audio file.
-    return MapParser.parseBeatmap(currentMapDir);
+    return MapParser.parseBeatmap(currentMapDir);    
   }
 
   /**
@@ -351,7 +384,8 @@ public class SongPanel extends JPanel {
     }
 
     // Add song to recently played
-    this.recentlyPlayedSongs.add(metadata[3]);
+    this.songTitle = metadata[3];
+    this.recentlyPlayedSongs.add(this.songTitle);
     if (this.recentlyPlayedSongs.size() > QUEUE_THRESHOLD) {
       debugOut("Recently played queue reached size threshold. Removing oldest song.");
       this.recentlyPlayedSongs.remove();
@@ -369,12 +403,10 @@ public class SongPanel extends JPanel {
     try {
       this.songBG = convertImage(ImageIO.read(new File(filePath + metadata[1])).getScaledInstance(this.width,
           this.height, Image.SCALE_SMOOTH));
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       System.err.println("IOE@" + filePath + metadata[1]);
       this.songBG = new BufferedImage(this.width, this.height, BufferedImage.TYPE_BYTE_BINARY);
-    }
-    catch (NullPointerException npe) {
+    } catch (NullPointerException npe) {
       System.err.println("NPE@" + filePath + metadata[1]);
     }
 
@@ -388,6 +420,7 @@ public class SongPanel extends JPanel {
    * Switches the current audio state from playing to paused, and vice-versa.
    */
   public final void togglePause() {
+
     if (this.audioPlayer.isPlaying()) {
       this.repaintTimer.stop();
       this.audioPlayer.pause();
@@ -405,6 +438,7 @@ public class SongPanel extends JPanel {
    * @return true if audio is paused; false otherwise.
    */
   public final boolean isPaused() {
+
     return !this.audioPlayer.isPlaying();
   }
 
@@ -412,6 +446,7 @@ public class SongPanel extends JPanel {
    * Calls the main JFrame's closeEverything() method
    */
   public final void closeEverything() {
+
     this.audioPlayer.close();
     this.minim.stop();
     this.minim.dispose();
@@ -425,6 +460,7 @@ public class SongPanel extends JPanel {
    */
   @Override
   public Dimension getPreferredSize() {
+
     return new Dimension(this.width, this.height);
   }
 
@@ -433,6 +469,7 @@ public class SongPanel extends JPanel {
    */
   @Override
   public Dimension getMinimumSize() {
+
     return getPreferredSize();
   }
 
@@ -441,6 +478,7 @@ public class SongPanel extends JPanel {
    */
   @Override
   public Dimension getMaximumSize() {
+
     return getPreferredSize();
   }
 
@@ -459,7 +497,8 @@ public class SongPanel extends JPanel {
     final int centerY = this.height >> 1;
     drawSongInfo(g2, centerY);
 
-    if (!this.audioPlayer.isPlaying()) return;
+    if (!this.audioPlayer.isPlaying())
+      return;
 
     drawFFT(g2, centerY);
   }
@@ -470,6 +509,7 @@ public class SongPanel extends JPanel {
    * @param g2 Graphics2D object.
    */
   private final void drawBackground(final Graphics2D g2) {
+
     if (this.songBG != null) {
       g2.drawImage(this.songBG, 0, 0, null);
     }
@@ -482,57 +522,50 @@ public class SongPanel extends JPanel {
    * @param centerY half of the window height.
    */
   private final void drawSongInfo(final Graphics2D g2, final int centerY) {
-    final int infoBGStart = (int) (this.height * INFO_BG_Y);
+
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2.setFont(this.titleFont);
+    final int titleWidth = g2.getFontMetrics(this.titleFont).stringWidth(this.songTitle);
 
     // Draw song info background
-    g2.setColor(COLOR_INFO_BG);
-    g2.fillRect(0, infoBGStart, this.width, centerY >> 1);
+    final int infoBGx = (this.width >> 1) - SONGINFO_W - (titleWidth >> 1);
+    final int infoBGy = (int) (INFO_BG_Y * this.height);
+    g2.drawImage(this.infoBGL, infoBGx, infoBGy, null);
+    final BufferedImage scaledInfoBG = convertImage(
+        this.infoBGC.getScaledInstance(titleWidth, SONGINFO_H, Image.SCALE_FAST));
+    final int infoBGcx = infoBGx + SONGINFO_W;
+    g2.drawImage(scaledInfoBG, infoBGcx, infoBGy, null);
+    final int infoBGrx = infoBGcx + titleWidth;
+    g2.drawImage(this.infoBGR, infoBGrx, infoBGy, null);
 
     // Song title font calculations
-    final String titleString = this.metadata[3];
-    int fontx = this.optPanel.getWidth();
-    int fonty = this.height - this.optPanel.getHeight() - PLAYER_PADDING;
-
-    g2.setFont(this.titleFont);
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    final double fntWidth = g2.getFontMetrics(this.titleFont).stringWidth(titleString);
-
-    // Scale font if the song title is too long.
-    final double maxFontWidth = this.width - fontx - PLAYER_PADDING;
-    if (fntWidth > maxFontWidth) {
-      final float fntSize = (float) (((maxFontWidth) / fntWidth) * this.titleFont.getSize());
-      final Font tFont = this.titleFont.deriveFont(fntSize);
-      g2.setFont(tFont);
-    }
-
-    // Draw shadow
-    g2.setColor(Color.BLACK);
-    g2.drawString(titleString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
-
+    int titleStringx = this.optPanel.getWidth();
+    int titleStringy = this.height - this.optPanel.getHeight() - PLAYER_PADDING;
+    
     // Draw title
     g2.setColor(Color.WHITE);
-    g2.drawString(titleString, fontx, fonty);
+    g2.drawString(this.songTitle, titleStringx, titleStringy);
 
     // Artist font calculations
     g2.setFont(this.labelFont);
     String artistString = "Artist: " + this.metadata[4];
-    fontx += (this.width * SONG_INFO_INDENT_X);
-    fonty += (this.height * SONG_INFO_SPACING_Y);
+    titleStringx += (this.width * SONG_INFO_INDENT_X);
+    titleStringy += (this.height * SONG_INFO_SPACING_Y);
 
     // Draw Shadow and artist name
-    g2.setColor(Color.BLACK);
-    g2.drawString(artistString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
+    //    g2.setColor(Color.BLACK);
+    //    g2.drawString(artistString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
     g2.setColor(Color.WHITE);
-    g2.drawString(artistString, fontx, fonty);
+    g2.drawString(artistString, titleStringx, titleStringy);
 
     // Calculate and draw source name
     if (this.metadata[5].length() > 0) {
       String sourceString = "Source: " + this.metadata[5];
-      fonty += (this.height * SONG_INFO_SPACING_Y);
-      g2.setColor(Color.BLACK);
-      g2.drawString(sourceString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
+      titleStringy += (this.height * SONG_INFO_SPACING_Y);
+      //      g2.setColor(Color.BLACK);
+      //      g2.drawString(sourceString, fontx + FONT_SHADOW_OFFSET_X, fonty + FONT_SHADOW_OFFSET_Y);
       g2.setColor(Color.WHITE);
-      g2.drawString(sourceString, fontx, fonty);
+      g2.drawString(sourceString, titleStringx, titleStringy);
     }
 
     drawProgressBar(g2);
@@ -611,7 +644,7 @@ public class SongPanel extends JPanel {
       gpfg.lineTo(point3b.getX(), point3b.getY());
       point3 = calcPoint3(npx, npy, px, py);
       point3b = calcPoint3(npx, npy2, px, py2);
-      gpbg.curveTo(px, py, px, py, point3.getX(), point3.getY());
+      gpbg.curveTo(px, py - 1, px, py - 1, point3.getX(), point3.getY() - 1);
       gpfg.curveTo(px, py2, px, py2, point3b.getX(), point3b.getY());
 
     }
@@ -659,6 +692,7 @@ public class SongPanel extends JPanel {
    * @return the BufferedImage that was converted.
    */
   private static final BufferedImage convertImage(final Image img) {
+
     final BufferedImage result = new BufferedImage(img.getWidth(null), img.getHeight(null),
         BufferedImage.TYPE_INT_ARGB);
     result.getGraphics().drawImage(img, 0, 0, null);
@@ -680,24 +714,23 @@ public class SongPanel extends JPanel {
       final Mp3File mf = new Mp3File(s);
 
       // Strip tags if they exist
-      if (mf.hasId3v1Tag()) mf.removeId3v1Tag();
-      if (mf.hasId3v2Tag()) mf.removeId3v2Tag();
-      if (mf.hasCustomTag()) mf.removeCustomTag();
+      if (mf.hasId3v1Tag())
+        mf.removeId3v1Tag();
+      if (mf.hasId3v2Tag())
+        mf.removeId3v2Tag();
+      if (mf.hasCustomTag())
+        mf.removeCustomTag();
 
       // Save temp file
       mf.save(newFileName);
 
-    }
-    catch (UnsupportedTagException e) {
+    } catch (UnsupportedTagException e) {
       System.err.println("Unsupported tag!\n" + e.getMessage());
-    }
-    catch (InvalidDataException e) {
+    } catch (InvalidDataException e) {
       System.err.println("Mp3 file is corrupt!");
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
-    }
-    catch (NotSupportedException e) {
+    } catch (NotSupportedException e) {
       e.printStackTrace();
     }
 
@@ -714,6 +747,7 @@ public class SongPanel extends JPanel {
    * @return a Point with the result.
    */
   private static final Point calcPoint3(final double x1, final double y1, final double x2, final double y2) {
+
     final double arcSize = 10;
     final double d1 = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     final double per = arcSize / d1;
@@ -729,6 +763,7 @@ public class SongPanel extends JPanel {
    * @return a String of the format "M:SS".
    */
   private static final String getPlaytimeString(final int t) {
+
     final int mins = t / 60;
     final int secs = t % 60;
 
@@ -741,6 +776,8 @@ public class SongPanel extends JPanel {
    * @param msg the String to print to sysout.
    */
   private static final void debugOut(final String msg) {
-    if (DEBUG_MODE) System.out.println(msg);
+
+    if (DEBUG_MODE)
+      System.out.println(msg);
   }
 }
