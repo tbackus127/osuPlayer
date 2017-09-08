@@ -14,11 +14,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -66,7 +70,7 @@ public class SongPanel extends JPanel {
   private static final int NUM_BANDS = 256; // Was 256
 
   /** Bar vertical scaling. */
-  private static final double BAND_SCALE = 9.0D;
+  private static final double BAND_SCALE = 2.8D;
 
   /** Width of each spectrum bar. */
   private static final int FFT_BAR_WIDTH = 12;
@@ -89,16 +93,16 @@ public class SongPanel extends JPanel {
 
   // --------------------------------------------------------------------------
   /** Horizontal position of the song timer. */
-  private static final double PLAYTIME_X = 0.035D;
+  private static final double PLAYTIME_X = 0.7D;
 
   /** Vertical position of the song timer. */
-  private static final double PLAYTIME_Y = 0.87D;
+  private static final double PLAYTIME_Y = 0.08D;
 
   /** Multiplier for horizontal progress bar positioning. */
-  private static final double PROGRESS_X_MULT = 2.1D;
+  private static final double PROGRESS_X = 0.63D;
 
   /** Horizontal progress bar positioning. */
-  private static final double PROGRESS_X = PLAYTIME_X * PROGRESS_X_MULT;
+  private static final double PROGRESS_Y = 0.08;
 
   /** Progress bar length. */
   private static final double PROGRESS_LEN = 0.1D;
@@ -142,9 +146,6 @@ public class SongPanel extends JPanel {
   private static final int FILTER_PANEL_HEIGHT = 80;
 
   // --------------------------------------------------------------------------
-  /** Recent songs list file handle. */
-  private File recentListFile;
-
   /** The song background from the beatmap folder. */
   private BufferedImage songBG;
 
@@ -225,7 +226,24 @@ public class SongPanel extends JPanel {
   public SongPanel(PlayerFrame par, int w, int h) {
     super();
 
+    // Get the recently played queue if it exists
     this.recentlyPlayedSongs = new ArrayDeque<String>();
+
+    final File recentlyPlayedFile = new File(RECENT_LIST_FILENAME);
+    if (recentlyPlayedFile.exists()) {
+      Scanner fscan = null;
+      try {
+        fscan = new Scanner(recentlyPlayedFile);
+        while (fscan.hasNextLine()) {
+          this.recentlyPlayedSongs.add(fscan.nextLine());
+        }
+
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } finally {
+        fscan.close();
+      }
+    }
 
     // Set class fields
     this.width = w;
@@ -454,6 +472,7 @@ public class SongPanel extends JPanel {
     this.audioPlayer.close();
     this.minim.stop();
     this.minim.dispose();
+    saveQueue(this.recentlyPlayedSongs);
     this.lastAudioFile.delete();
     this.repaintTimer.stop();
     this.parent.closeEverything();
@@ -574,7 +593,7 @@ public class SongPanel extends JPanel {
       g2.drawString(sourceString, stringPosx, stringPosy);
     }
 
-    drawProgressBar(g2);
+    //    drawProgressBar(g2);
   }
 
   /**
@@ -593,7 +612,7 @@ public class SongPanel extends JPanel {
 
     // Draw progress bar
     final int progBarPosX = (int) (PROGRESS_X * this.width);
-    final int progBarPosY = timePosY - (timeStrHeight >> 1);
+    final int progBarPosY = (int) (PROGRESS_Y * this.height);
     final double progBarLen = PROGRESS_LEN * this.width;
     g2.drawLine(progBarPosX, progBarPosY, (int) (progBarPosX + progBarLen), progBarPosY);
 
@@ -735,6 +754,30 @@ public class SongPanel extends JPanel {
       pb = 255;
 
     return new Color(255 - pr, 255 - pg, 255 - pb, 180);
+  }
+
+  /**
+   * Saves the current song queue to a file.
+   * 
+   * @param q the queue.
+   */
+  private static final void saveQueue(final Queue<String> q) {
+
+    final ArrayList<String> list = new ArrayList<String>(q);
+    PrintStream fout = null;
+
+    try {
+      fout = new PrintStream(RECENT_LIST_FILENAME);
+
+      for (final String s : list) {
+        fout.println(s);
+      }
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } finally {
+      fout.close();
+    }
   }
 
   /**
